@@ -107,7 +107,6 @@ where
   * Enabled by default.
   * Generate code for `std` library.
   * Disable to generate code for `no_std`.
-  <!-- * 具体的にはstd_root関数が返す値が変化することを記述する -->
 
 ## Rust Version
 
