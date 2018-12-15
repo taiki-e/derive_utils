@@ -1,0 +1,34 @@
+[package]
+name = "derive_utils"
+# NB: When modifying, also modify html_root_url in lib.rs
+version = "0.1.0"
+authors = ["Taiki Endo <te316e89@gmail.com>"]
+license = "Apache-2.0/MIT"
+description = "A procedural macro helper for trait implemention for enums."
+repository = "https://github.com/taiki-e/derive_utils"
+documentation = "https://docs.rs/derive_utils/"
+readme = "README.md"
+keywords = ["enum", "macros", "derive"]
+categories = ["development-tools::procedural-macro-helpers"]
+exclude = ["/.travis.yml"]
+
+[workspace]
+members = [
+    "examples/example",
+    "examples/example_derive",
+]
+
+[badges]
+travis-ci = { repository = "taiki-e/derive_utils" }
+
+[dependencies]
+proc-macro2 = "^0.4.13"
+quote = "^0.6.8"
+smallvec = "^0.6.7"
+syn = { version = "^0.15.19", features = ["full", "extra-traits"] }
+
+[features]
+# Default features.
+default = ["std"]
+# Generate code for `std` library.
+std = []

@@ -1,0 +1,20 @@
+language: rust
+sudo: false
+
+matrix:
+  include:
+    - rust: 1.30.0
+    - rust: stable
+    - rust: beta
+    - rust: nightly
+
+before_script:
+  - set -o errexit
+
+script:
+  - cargo test
+  - cd "${TRAVIS_BUILD_DIR}/examples/example"
+  - cargo run --bin example
+
+notifications:
+  email: false
