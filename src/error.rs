@@ -1,4 +1,4 @@
-use std::{fmt, result};
+use std::{error, fmt, result};
 
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -20,10 +20,24 @@ pub enum Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use self::Error::*;
         match self {
-            Syn(e) => write!(f, "{}", e),
-            Other(s) => write!(f, "{}", s),
+            Error::Syn(e) => write!(f, "{}", e),
+            Error::Other(s) => write!(f, "{}", s),
+        }
+    }
+}
+
+impl error::Error for Error {
+    fn description(&self) -> &str {
+        match self {
+            Error::Syn(e) => e.description(),
+            Error::Other(s) => s,
+        }
+    }
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Error::Syn(e) => e.source(),
+            Error::Other(_) => None,
         }
     }
 }
