@@ -22,7 +22,6 @@ derive_utils = "0.1"
 and this to your crate root:
 
 ```rust
-#[macro_use]
 extern crate derive_utils;
 ```
 
