@@ -1,10 +1,11 @@
 use std::{borrow::Cow, mem};
 
 use proc_macro2::{Ident, TokenStream};
-use quote::{quote, ToTokens};
-use syn::{punctuated::Punctuated, *};
+use quote::ToTokens;
+use syn::{self, punctuated::Punctuated, *};
 
-use crate::{Result, *};
+use common::*;
+use error::Result;
 
 pub struct EnumData {
     ident: Ident,

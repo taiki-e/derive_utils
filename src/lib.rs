@@ -5,12 +5,12 @@
 //! ```rust
 //! extern crate derive_utils;
 //! extern crate proc_macro;
+//! #[macro_use]
 //! extern crate quote;
 //! extern crate syn;
 //!
 //! use derive_utils::EnumData;
 //! use proc_macro::TokenStream;
-//! use quote::quote;
 //! use syn::DeriveInput;
 //!
 //! # #[cfg(all(feature = "std", not(feature = "std")))]
@@ -34,6 +34,7 @@
 //!         .build()
 //!         .into()
 //! }
+//! # fn main() {}
 //! ```
 //!
 //! #### Generated code
@@ -88,13 +89,14 @@
 //!
 //! ## Rust Version
 //!
-//! The current minimum required Rust version is 1.30.
+//! The current minimum required Rust version is 1.27.
 //!
 
 #![recursion_limit = "256"]
 #![doc(html_root_url = "https://docs.rs/derive_utils/0.1.1")]
 
 extern crate proc_macro2;
+#[macro_use]
 extern crate quote;
 extern crate smallvec;
 extern crate syn;

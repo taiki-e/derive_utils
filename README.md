@@ -30,12 +30,12 @@ extern crate derive_utils;
 ```rust
 extern crate derive_utils;
 extern crate proc_macro;
+#[macro_use]
 extern crate quote;
 extern crate syn;
 
 use derive_utils::EnumData;
 use proc_macro::TokenStream;
-use quote::quote;
 use syn::DeriveInput;
 
 #[proc_macro_derive(Iterator)]
@@ -109,7 +109,7 @@ where
 
 ## Rust Version
 
-The current minimum required Rust version is 1.30.
+The current minimum required Rust version is 1.27.
 
 ## License
 
