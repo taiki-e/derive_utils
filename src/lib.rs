@@ -80,6 +80,8 @@
 //! }
 //! ```
 //!
+//! See [auto_enums crate](https://github.com/taiki-e/auto_enums/tree/master/derive/src/derive) for more examples.
+//!
 //! ## Crate Features
 //!
 //! * `std`

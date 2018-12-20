@@ -16,7 +16,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-derive_utils = "0.1"
+derive_utils = "0.2"
 ```
 
 and this to your crate root:
@@ -99,6 +99,8 @@ where
     }
 }
 ```
+
+See [auto_enums crate](https://github.com/taiki-e/auto_enums/tree/master/derive/src/derive) for more examples.
 
 ## Crate Features
 
