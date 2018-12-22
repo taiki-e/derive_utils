@@ -1,5 +1,7 @@
 # Unreleased
 
+# 0.3.0 - 2018-12-22
+
 * Add `derive_trait` and `derive_trait_with_capacity` macros<br>
   With this change, the minimum version will go up to 1.30.
 
