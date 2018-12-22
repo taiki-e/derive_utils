@@ -1,5 +1,7 @@
 # Unreleased
 
+# 0.4.0 - 2018-12-22
+
 * Support `self: Pin<&Self>` and `self: Pin<&mut Self>`
 * Allow using the trait name as trait path
 

@@ -14,7 +14,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-derive_utils = "0.3"
+derive_utils = "0.4"
 ```
 
 and this to your crate root:
