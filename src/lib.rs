@@ -1,4 +1,4 @@
-//! A procedural macro helper for trait implemention for enums.
+//! A procedural macro helper for easily writing `proc_macro_derive` like deriving trait to enum so long as all variants are implemented that trait.
 //!
 //! ## Examples
 //!
