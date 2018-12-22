@@ -2,16 +2,36 @@
 
 extern crate derive_utils;
 extern crate proc_macro;
-#[macro_use]
 extern crate quote;
 extern crate syn;
 
-use derive_utils::EnumData;
+use derive_utils::{derive_trait, EnumData};
 use proc_macro::TokenStream;
+use quote::quote;
 use syn::DeriveInput;
 
 #[proc_macro_derive(Iterator)]
-pub fn derive(input: TokenStream) -> TokenStream {
+pub fn derive1(input: TokenStream) -> TokenStream {
+    let ast: DeriveInput = syn::parse(input).unwrap();
+    let data = EnumData::from_derive(&ast).unwrap();
+
+    derive_trait!(
+        data,
+        // path
+        (Iterator),
+        // trait
+        trait Iterator {
+            type Item;
+            fn next(&mut self) -> Option<Self::Item>;
+            fn size_hint(&self) -> (usize, Option<usize>);
+        }
+    )
+    .unwrap()
+    .into()
+}
+
+#[proc_macro_derive(Iterator2)]
+pub fn derive2(input: TokenStream) -> TokenStream {
     let ast: DeriveInput = syn::parse(input).unwrap();
     let data = EnumData::from_derive(&ast).unwrap();
 

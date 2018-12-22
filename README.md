@@ -6,8 +6,6 @@
 [![license](https://img.shields.io/crates/l/derive_utils.svg)](https://crates.io/crates/derive_utils/)
 [![Rustc Version](https://img.shields.io/badge/rustc-1.30+-lightgray.svg)](https://blog.rust-lang.org/2018/10/25/Rust-1.30.0.html)
 
-[API Documentation](https://docs.rs/derive_utils/)
-
 A procedural macro helper for trait implemention for enums.
 
 ## Usage
@@ -30,11 +28,9 @@ extern crate derive_utils;
 ```rust
 extern crate derive_utils;
 extern crate proc_macro;
-#[macro_use]
-extern crate quote;
 extern crate syn;
 
-use derive_utils::EnumData;
+use derive_utils::{derive_trait, EnumData};
 use proc_macro::TokenStream;
 use syn::DeriveInput;
 
@@ -43,19 +39,19 @@ pub fn derive(input: TokenStream) -> TokenStream {
     let ast: DeriveInput = syn::parse(input).unwrap();
     let data = EnumData::from_derive(&ast).unwrap();
 
-    let path = syn::parse_str("Iterator").unwrap();
-    let trait_ = syn::parse2(quote! {
+    derive_trait!(
+        data,
+        // path
+        (Iterator),
+        // trait
         trait Iterator {
             type Item;
             fn next(&mut self) -> Option<Self::Item>;
             fn size_hint(&self) -> (usize, Option<usize>);
         }
-    }).unwrap();
-
-    data.make_impl_trait(path, None, trait_)
-        .unwrap()
-        .build()
-        .into()
+    )
+    .unwrap()
+    .into()
 }
 ```
 
@@ -111,7 +107,7 @@ See [auto_enums crate](https://github.com/taiki-e/auto_enums/tree/master/derive/
 
 ## Rust Version
 
-The current minimum required Rust version is 1.27.
+The current minimum required Rust version is 1.30.
 
 ## License
 

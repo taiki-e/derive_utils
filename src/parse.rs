@@ -1,8 +1,8 @@
 use std::{borrow::Cow, mem};
 
 use proc_macro2::{Ident, TokenStream};
-use quote::ToTokens;
-use syn::{self, punctuated::Punctuated, *};
+use quote::{quote, ToTokens};
+use syn::{punctuated::Punctuated, *};
 
 use common::*;
 use error::Result;

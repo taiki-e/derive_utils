@@ -5,11 +5,9 @@
 //! ```rust
 //! extern crate derive_utils;
 //! extern crate proc_macro;
-//! #[macro_use]
-//! extern crate quote;
 //! extern crate syn;
 //!
-//! use derive_utils::EnumData;
+//! use derive_utils::{derive_trait, EnumData};
 //! use proc_macro::TokenStream;
 //! use syn::DeriveInput;
 //!
@@ -20,19 +18,19 @@
 //!     let ast: DeriveInput = syn::parse(input).unwrap();
 //!     let data = EnumData::from_derive(&ast).unwrap();
 //!
-//!     let path = syn::parse_str("Iterator").unwrap();
-//!     let trait_ = syn::parse2(quote! {
+//!     derive_trait!(
+//!         data,
+//!         // path
+//!         (Iterator),
+//!         // trait
 //!         trait Iterator {
 //!             type Item;
 //!             fn next(&mut self) -> Option<Self::Item>;
 //!             fn size_hint(&self) -> (usize, Option<usize>);
 //!         }
-//!     }).unwrap();
-//!
-//!     data.make_impl_trait(path, None, trait_)
-//!         .unwrap()
-//!         .build()
-//!         .into()
+//!     )
+//!     .unwrap()
+//!     .into()
 //! }
 //! # fn main() {}
 //! ```
@@ -91,21 +89,28 @@
 //!
 //! ## Rust Version
 //!
-//! The current minimum required Rust version is 1.27.
+//! The current minimum required Rust version is 1.30.
 //!
 
 #![recursion_limit = "256"]
 #![doc(html_root_url = "https://docs.rs/derive_utils/0.2.0")]
 
 extern crate proc_macro2;
-#[macro_use]
 extern crate quote;
 extern crate smallvec;
-extern crate syn;
+
+#[doc(hidden)]
+pub extern crate syn;
+
+#[macro_use]
+mod macros;
 
 mod common;
 mod error;
 mod parse;
+
+#[doc(hidden)]
+pub use quote::quote;
 
 pub use self::common::*;
 pub use self::error::{Error, Result, *};

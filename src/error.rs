@@ -1,7 +1,7 @@
 use std::{error, fmt, result};
 
 use proc_macro2::TokenStream;
-use syn;
+use quote::quote;
 
 pub(crate) type StdResult<T, E> = result::Result<T, E>;
 pub type Result<T> = StdResult<T, Error>;
@@ -35,15 +35,6 @@ impl error::Error for Error {
         }
     }
 
-    #[cfg(not(stable_1_30))]
-    fn cause(&self) -> Option<&dyn error::Error> {
-        match self {
-            Error::Syn(e) => Some(e),
-            Error::Other(_) => None,
-        }
-    }
-
-    #[cfg(stable_1_30)]
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Error::Syn(e) => Some(e),
