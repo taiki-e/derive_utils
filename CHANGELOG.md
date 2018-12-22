@@ -1,5 +1,7 @@
 # Unreleased
 
+* Support `self: Pin<&Self>` and `self: Pin<&mut Self>`
+
 # 0.3.0 - 2018-12-22
 
 * Add `derive_trait` and `derive_trait_with_capacity` macros<br>

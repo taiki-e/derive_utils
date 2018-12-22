@@ -15,14 +15,31 @@ pub struct EnumData {
 }
 
 impl EnumData {
+    /// Constructs a new `EnumImpl`.
     pub fn make_impl<'a>(&'a self) -> Result<EnumImpl<'a>> {
         EnumImpl::new(self, Vec::new())
     }
 
+    /// Constructs a new `EnumImpl` with the specified capacity..
     pub fn impl_with_capacity<'a>(&'a self, capacity: usize) -> Result<EnumImpl<'a>> {
         EnumImpl::new(self, Vec::with_capacity(capacity))
     }
 
+    /// Constructs a new `EnumImpl` from `ItemTrait`.
+    ///
+    /// `TraitItem::Method` that has the first argument other than the following is error:
+    /// - `&self`
+    /// - `&mut self`
+    /// - `self`
+    /// - `mut self`
+    /// - `self: Pin<&Self>`
+    /// - `self: Pin<&mut Self>`
+    ///
+    /// The following items are ignored:
+    /// - Generic associated types (GAT) (`TraitItem::Method` that has generics)
+    /// - `TraitItem::Const`
+    /// - `TraitItem::Macro`
+    /// - `TraitItem::Verbatim`
     pub fn make_impl_trait<'a, I>(
         &'a self,
         trait_path: Path,
@@ -36,6 +53,21 @@ impl EnumData {
         EnumImpl::from_trait(self, trait_path, Vec::new(), item, supertraits_types)
     }
 
+    /// Constructs a new `EnumImpl` from `ItemTrait` with the specified capacity.
+    ///
+    /// `TraitItem::Method` that has the first argument other than the following is error:
+    /// - `&self`
+    /// - `&mut self`
+    /// - `self`
+    /// - `mut self`
+    /// - `self: Pin<&Self>`
+    /// - `self: Pin<&mut Self>`
+    ///
+    /// The following items are ignored:
+    /// - Generic associated types (GAT) (`TraitItem::Method` that has generics)
+    /// - `TraitItem::Const`
+    /// - `TraitItem::Macro`
+    /// - `TraitItem::Verbatim`
     pub fn impl_trait_with_capacity<'a, I>(
         &'a self,
         capacity: usize,
@@ -138,14 +170,13 @@ impl<'a> EnumImpl<'a> {
         self.items.push(item);
     }
 
-    pub fn push_method(&mut self, item: TraitItemMethod) -> Result<()> {
-        self._push_method(item, None)
-    }
+    #[deprecated(note = "Use `push_method` instead")]
     pub fn push_method_pin_ref(&mut self, item: TraitItemMethod) -> Result<()> {
-        self._push_method(item, Some(SelfTypes::Pin(SelfPin::Ref)))
+        self.push_method(item)
     }
+    #[deprecated(note = "Use `push_method` instead")]
     pub fn push_method_pin_mut(&mut self, item: TraitItemMethod) -> Result<()> {
-        self._push_method(item, Some(SelfTypes::Pin(SelfPin::Mut)))
+        self.push_method(item)
     }
 
     fn arms<F: FnMut(&Ident) -> TokenStream>(&self, f: F) -> TokenStream {
@@ -157,18 +188,45 @@ impl<'a> EnumImpl<'a> {
         self.trait_.as_ref().map(|t| &t.path)
     }
 
-    fn _push_method(&mut self, item: TraitItemMethod, self_ty: Option<SelfTypes>) -> Result<()> {
+    /// Appends a method from `TraitItemMethod`.
+    ///
+    /// A method that has the first argument other than the following is error:
+    /// - `&self`
+    /// - `&mut self`
+    /// - `self`
+    /// - `mut self`
+    /// - `self: Pin<&Self>`
+    /// - `self: Pin<&mut Self>`
+    pub fn push_method(&mut self, item: TraitItemMethod) -> Result<()> {
         let method = {
             let mut args = item.sig.decl.inputs.iter();
-            match args.next() {
-                Some(FnArg::SelfRef(_)) | Some(FnArg::SelfValue(_)) if self_ty.is_none() => {}
-                Some(FnArg::Captured(_arg)) if self_ty.is_some() => {}
-                _ => Err("unsupported arg type")?,
-            }
+            let self_ty = match args.next() {
+                Some(FnArg::SelfRef(_)) | Some(FnArg::SelfValue(_)) => None,
+                Some(FnArg::Captured(ArgCaptured {
+                    pat: Pat::Ident(ref pat),
+                    ty: Type::Path(ref path),
+                    ..
+                })) if pat.ident == "self" && path.qself.is_none() => {
+                    match &*path.path.clone().into_token_stream().to_string() {
+                        "Pin < & Self >"
+                        | ":: std :: pin :: Pin < & Self >"
+                        | ":: core :: pin :: Pin < & Self >"
+                        | "std :: pin :: Pin < & Self >"
+                        | "core :: pin :: Pin < & Self >" => Some(SelfTypes::Pin(SelfPin::Ref)),
+                        "Pin < & mut Self >"
+                        | ":: std :: pin :: Pin < & mut Self >"
+                        | ":: core :: pin :: Pin < & mut Self >"
+                        | "std :: pin :: Pin < & mut Self >"
+                        | "core :: pin :: Pin < & mut Self >" => Some(SelfTypes::Pin(SelfPin::Mut)),
+                        _ => Err("unsupported first argument type")?,
+                    }
+                }
+                _ => Err("unsupported first argument type")?,
+            };
             let args: &Stack<_> = &args
                 .map(|arg| match arg {
                     FnArg::Captured(arg) => Ok(&arg.pat),
-                    _ => Err("unsupported arg type")?,
+                    _ => Err("unsupported arguments type")?,
                 })
                 .collect::<Result<_>>()?;
 
@@ -221,17 +279,25 @@ impl<'a> EnumImpl<'a> {
             item,
             block(vec![Stmt::Expr(syn::parse2(method)?)]),
         )));
+
         Ok(())
     }
 
-    /// Append items from `ItemTrait`.
+    /// Appends items from `ItemTrait`.
+    ///
+    /// `TraitItem::Method` that has the first argument other than the following is error:
+    /// - `&self`
+    /// - `&mut self`
+    /// - `self`
+    /// - `mut self`
+    /// - `self: Pin<&Self>`
+    /// - `self: Pin<&mut Self>`
     ///
     /// The following items are ignored:
     /// - Generic associated types (GAT) (`TraitItem::Method` that has generics)
     /// - `TraitItem::Const`
     /// - `TraitItem::Macro`
     /// - `TraitItem::Verbatim`
-    /// - `TraitItem::Method` that has the first argument other than `&self`, `&mut self`, `self` or `mut self`.
     pub fn append_items_from_trait(&mut self, item: ItemTrait) -> Result<()> {
         let fst = self.data.fields.iter().next();
         item.items.into_iter().try_for_each(|item| match item {
@@ -249,13 +315,7 @@ impl<'a> EnumImpl<'a> {
                 }
                 Ok(())
             }
-            TraitItem::Method(method) => {
-                match method.sig.decl.inputs.iter().next() {
-                    Some(FnArg::SelfRef(_)) | Some(FnArg::SelfValue(_)) => {}
-                    _ => return Ok(()),
-                }
-                self.push_method(method)
-            }
+            TraitItem::Method(method) => self.push_method(method),
         })
     }
 
