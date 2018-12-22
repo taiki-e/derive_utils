@@ -2,16 +2,16 @@
 
 extern crate derive_utils;
 extern crate proc_macro;
-extern crate quote;
+extern crate proc_macro2;
 extern crate syn;
 
 use derive_utils::{derive_trait, EnumData};
 use proc_macro::TokenStream;
-use quote::quote;
+use proc_macro2::{Ident, Span};
 use syn::DeriveInput;
 
 #[proc_macro_derive(Iterator)]
-pub fn derive1(input: TokenStream) -> TokenStream {
+pub fn derive_iterator(input: TokenStream) -> TokenStream {
     let ast: DeriveInput = syn::parse(input).unwrap();
     let data = EnumData::from_derive(&ast).unwrap();
 
@@ -30,23 +30,22 @@ pub fn derive1(input: TokenStream) -> TokenStream {
     .into()
 }
 
-#[proc_macro_derive(Iterator2)]
-pub fn derive2(input: TokenStream) -> TokenStream {
+#[proc_macro_derive(ExactSizeIterator)]
+pub fn derive_exact_size_iterator(input: TokenStream) -> TokenStream {
     let ast: DeriveInput = syn::parse(input).unwrap();
     let data = EnumData::from_derive(&ast).unwrap();
 
-    let path = syn::parse_str("Iterator").unwrap();
-    let trait_ = syn::parse2(quote! {
-        trait Iterator {
-            type Item;
-            fn next(&mut self) -> Option<Self::Item>;
-            fn size_hint(&self) -> (usize, Option<usize>);
+    derive_trait!(
+        data,
+        // super trait's associated types
+        Some(Ident::new("Item", Span::call_site())),
+        // path
+        (ExactSizeIterator),
+        // trait
+        trait ExactSizeIterator: Iterator {
+            fn len(&self) -> usize;
         }
-    })
-    .unwrap();
-
-    data.make_impl_trait(path, None, trait_)
-        .unwrap()
-        .build()
-        .into()
+    )
+    .unwrap()
+    .into()
 }
