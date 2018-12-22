@@ -5,29 +5,71 @@
 //! ```rust
 //! extern crate derive_utils;
 //! extern crate proc_macro;
+//! extern crate proc_macro2;
 //! extern crate syn;
 //!
 //! use derive_utils::{derive_trait, EnumData};
 //! use proc_macro::TokenStream;
+//! use proc_macro2::{Ident, Span};
 //! use syn::DeriveInput;
 //!
 //! # #[cfg(all(feature = "std", not(feature = "std")))]
 //! #[proc_macro_derive(Iterator)]
-//! # pub fn _derive(input: TokenStream) -> TokenStream { input }
-//! pub fn derive(input: TokenStream) -> TokenStream {
+//! # pub fn _derive_iterator(input: TokenStream) -> TokenStream { input }
+//! pub fn derive_iterator(input: TokenStream) -> TokenStream {
 //!     let ast: DeriveInput = syn::parse(input).unwrap();
 //!     let data = EnumData::from_derive(&ast).unwrap();
 //!
 //!     derive_trait!(
 //!         data,
-//!         // path
-//!         (Iterator),
+//!         _,
 //!         // trait
 //!         trait Iterator {
 //!             type Item;
 //!             fn next(&mut self) -> Option<Self::Item>;
 //!             fn size_hint(&self) -> (usize, Option<usize>);
 //!         }
+//!     )
+//!     .unwrap()
+//!     .into()
+//! }
+//!
+//! # #[cfg(all(feature = "std", not(feature = "std")))]
+//! #[proc_macro_derive(ExactSizeIterator)]
+//! # pub fn _derive_exact_size_iterator(input: TokenStream) -> TokenStream { input }
+//! pub fn derive_exact_size_iterator(input: TokenStream) -> TokenStream {
+//!     let ast: DeriveInput = syn::parse(input).unwrap();
+//!     let data = EnumData::from_derive(&ast).unwrap();
+//!
+//!     derive_trait!(
+//!         data,
+//!         // super trait's associated types
+//!         Some(Ident::new("Item", Span::call_site())),
+//!         _,
+//!         // trait
+//!         trait ExactSizeIterator: Iterator {
+//!             fn len(&self) -> usize;
+//!         }
+//!     )
+//!     .unwrap()
+//!     .into()
+//! }
+//!
+//! # #[cfg(all(feature = "std", not(feature = "std")))]
+//! #[proc_macro_derive(FusedIterator)]
+//! # pub fn _derive_fused_iterator(input: TokenStream) -> TokenStream { input }
+//! pub fn derive_fused_iterator(input: TokenStream) -> TokenStream {
+//!     let ast: DeriveInput = syn::parse(input).unwrap();
+//!     let data = EnumData::from_derive(&ast).unwrap();
+//!
+//!     derive_trait!(
+//!         data,
+//!         // super trait's associated types
+//!         Some(Ident::new("Item", Span::call_site())),
+//!         // path
+//!         (std::iter::FusedIterator),
+//!         // trait
+//!         trait FusedIterator: Iterator {}
 //!     )
 //!     .unwrap()
 //!     .into()
@@ -41,8 +83,8 @@
 //!
 //! ```rust
 //! # #[cfg(all(feature = "std", not(feature = "std")))]
-//! #[derive(Iterator)]
-//! # struct A<A>(A);
+//! #[derive(Iterator, ExactSizeIterator, FusedIterator)]
+//! # struct _Iter<A>(A);
 //! enum Iter<A, B> {
 //!     A(A),
 //!     B(B),
@@ -75,6 +117,26 @@
 //!             Iter::B(x) => x.size_hint(),
 //!         }
 //!     }
+//! }
+//!
+//! impl<A, B> ExactSizeIterator for Iter<A, B>
+//! where
+//!     A: ExactSizeIterator,
+//!     B: ExactSizeIterator<Item = <A as Iterator>::Item>,
+//! {
+//!     fn len(&self) -> usize {
+//!         match self {
+//!             Iter::A(x) => x.len(),
+//!             Iter::B(x) => x.len(),
+//!         }
+//!     }
+//! }
+//!
+//! impl<A, B> std::iter::FusedIterator for Iter<A, B>
+//! where
+//!     A: std::iter::FusedIterator,
+//!     B: std::iter::FusedIterator<Item = <A as Iterator>::Item>,
+//! {
 //! }
 //! ```
 //!

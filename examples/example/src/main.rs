@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate example_derive;
 
-#[derive(Iterator, ExactSizeIterator)]
+#[derive(Iterator, ExactSizeIterator, FusedIterator)]
 enum Iter<A, B> {
     A(A),
     B(B),

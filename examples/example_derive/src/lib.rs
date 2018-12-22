@@ -17,8 +17,7 @@ pub fn derive_iterator(input: TokenStream) -> TokenStream {
 
     derive_trait!(
         data,
-        // path
-        (Iterator),
+        _,
         // trait
         trait Iterator {
             type Item;
@@ -39,12 +38,29 @@ pub fn derive_exact_size_iterator(input: TokenStream) -> TokenStream {
         data,
         // super trait's associated types
         Some(Ident::new("Item", Span::call_site())),
-        // path
-        (ExactSizeIterator),
+        _,
         // trait
         trait ExactSizeIterator: Iterator {
             fn len(&self) -> usize;
         }
+    )
+    .unwrap()
+    .into()
+}
+
+#[proc_macro_derive(FusedIterator)]
+pub fn derive_fused_iterator(input: TokenStream) -> TokenStream {
+    let ast: DeriveInput = syn::parse(input).unwrap();
+    let data = EnumData::from_derive(&ast).unwrap();
+
+    derive_trait!(
+        data,
+        // super trait's associated types
+        Some(Ident::new("Item", Span::call_site())),
+        // path
+        (std::iter::FusedIterator),
+        // trait
+        trait FusedIterator: Iterator {}
     )
     .unwrap()
     .into()

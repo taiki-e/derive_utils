@@ -448,7 +448,7 @@ impl<'a> EnumImpl<'a> {
                     pound_token: default(),
                     style: AttrStyle::Outer,
                     bracket_token: default(),
-                    path: path(Some(ident_call_site("allow").into()).into_iter()),
+                    path: path(Some(ident_call_site("allow").into())),
                     tts: quote!((unsafe_code)),
                 }]
             } else {

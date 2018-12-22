@@ -13,10 +13,11 @@ pub(crate) fn ident_call_site(s: &str) -> Ident {
     Ident::new(s, Span::call_site())
 }
 
-pub(super) fn path<I: Iterator<Item = PathSegment>>(segments: I) -> Path {
+#[doc(hidden)]
+pub fn path<I: IntoIterator<Item = PathSegment>>(segments: I) -> Path {
     Path {
         leading_colon: None,
-        segments: segments.collect(),
+        segments: segments.into_iter().collect(),
     }
 }
 
