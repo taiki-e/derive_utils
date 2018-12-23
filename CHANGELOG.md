@@ -1,5 +1,7 @@
 # Unreleased
 
+# 0.5.0 - 2018-12-23
+
 * Add quick_derive macro
 * Remove derive_trait_with_capacity macro
 
