@@ -52,9 +52,7 @@ macro_rules! quick_derive {
             $crate::EnumData::from_derive(&ast).and_then(|data| {
                 $crate::__rt::derive_trait!(
                     data,
-                    Some($crate::__rt::Ident::new(
-                        stringify!($super), $crate::__rt::Span::call_site()
-                    )),
+                    Some($crate::__rt::ident_call_site(stringify!($super))),
                     ($($path)*),
                     trait $($trait)*
                 )
@@ -73,9 +71,7 @@ macro_rules! quick_derive {
             $crate::EnumData::from_derive(&ast).and_then(|data| {
                 $crate::__rt::derive_trait!(
                     data,
-                    Some($crate::__rt::Ident::new(
-                        stringify!($super), $crate::__rt::Span::call_site()
-                    )),
+                    Some($crate::__rt::ident_call_site(stringify!($super))),
                     _,
                     trait $($trait)*
                 )

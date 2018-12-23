@@ -9,7 +9,8 @@ pub(crate) fn default<T: Default>() -> T {
     T::default()
 }
 
-pub(crate) fn ident_call_site(s: &str) -> Ident {
+#[doc(hidden)]
+pub fn ident_call_site(s: &str) -> Ident {
     Ident::new(s, Span::call_site())
 }
 

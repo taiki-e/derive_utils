@@ -156,9 +156,10 @@ pub use self::parse::*;
 #[doc(hidden)]
 pub mod __rt {
     #[doc(hidden)]
-    pub use crate::{common::path, derive_trait};
-    #[doc(hidden)]
-    pub use proc_macro2::{Ident, Span};
+    pub use crate::{
+        common::{ident_call_site, path},
+        derive_trait,
+    };
     #[doc(hidden)]
     pub use quote::quote;
     #[doc(hidden)]
