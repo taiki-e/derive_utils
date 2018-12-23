@@ -10,12 +10,8 @@ macro_rules! derive_trait {
         $crate::__rt::parse2($crate::__rt::quote!($($trait)*))
             .map_err($crate::Error::from)
             .and_then(|trait_: $crate::__rt::ItemTrait| {
-                $crate::__rt::derive_trait!(
-                    $data,
-                    $super,
-                    $crate::__rt::path(Some(trait_.ident.clone().into())),
-                    trait_
-                )
+                let path = $crate::__rt::path(Some(trait_.ident.clone().into()));
+                $crate::__rt::derive_trait!($data, $super, path, trait_)
             })
     };
     ($data:expr, $super:expr, ($($path:tt)*), $($trait:tt)*) => {
@@ -23,20 +19,16 @@ macro_rules! derive_trait {
             .map_err($crate::Error::from)
             .and_then(|path| {
                 let trait_: $crate::__rt::ItemTrait = $crate::__rt::parse2($crate::__rt::quote!($($trait)*))?;
-                $crate::__rt::derive_trait!(
-                    $data,
-                    $super,
-                    path,
-                    trait_
-                )
+                $crate::__rt::derive_trait!($data, $super, path, trait_)
             })
     };
-    ($data:expr, $path:expr, $trait:expr) => {
+    ($data:expr, $path:expr, $trait:expr) => {{
         $crate::__rt::derive_trait!($data, None, $path, $trait)
-    };
-    ($data:expr, $super:expr, $path:expr, $trait:expr) => {
-        $data.impl_trait_with_capacity($trait.items.len(), $path, $super, $trait).map($crate::build)
-    };
+    }};
+    ($data:expr, $super:expr, $path:expr, $trait:expr) => {{
+        let trait_: $crate::__rt::ItemTrait = $trait;
+        $data.impl_trait_with_capacity(trait_.items.len(), $path, $super, trait_).map($crate::build)
+    }};
 }
 
 #[macro_export]
