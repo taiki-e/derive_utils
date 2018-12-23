@@ -9,5 +9,3 @@ proc-macro = true
 
 [dependencies]
 derive_utils = { path = "../.." }
-proc-macro2 = "0.4"
-syn = "0.15"

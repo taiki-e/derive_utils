@@ -5,74 +5,53 @@
 //! ```rust
 //! extern crate derive_utils;
 //! extern crate proc_macro;
-//! extern crate proc_macro2;
-//! extern crate syn;
 //!
-//! use derive_utils::{derive_trait, EnumData};
+//! use derive_utils::quick_derive;
 //! use proc_macro::TokenStream;
-//! use proc_macro2::{Ident, Span};
-//! use syn::DeriveInput;
 //!
 //! # #[cfg(all(feature = "std", not(feature = "std")))]
 //! #[proc_macro_derive(Iterator)]
 //! # pub fn _derive_iterator(input: TokenStream) -> TokenStream { input }
 //! pub fn derive_iterator(input: TokenStream) -> TokenStream {
-//!     let ast: DeriveInput = syn::parse(input).unwrap();
-//!     let data = EnumData::from_derive(&ast).unwrap();
-//!
-//!     derive_trait!(
-//!         data,
-//!         _,
+//!     quick_derive! {
+//!         input,
 //!         // trait
 //!         trait Iterator {
 //!             type Item;
 //!             fn next(&mut self) -> Option<Self::Item>;
 //!             fn size_hint(&self) -> (usize, Option<usize>);
 //!         }
-//!     )
-//!     .unwrap()
-//!     .into()
+//!     }
 //! }
 //!
 //! # #[cfg(all(feature = "std", not(feature = "std")))]
 //! #[proc_macro_derive(ExactSizeIterator)]
 //! # pub fn _derive_exact_size_iterator(input: TokenStream) -> TokenStream { input }
 //! pub fn derive_exact_size_iterator(input: TokenStream) -> TokenStream {
-//!     let ast: DeriveInput = syn::parse(input).unwrap();
-//!     let data = EnumData::from_derive(&ast).unwrap();
-//!
-//!     derive_trait!(
-//!         data,
+//!     quick_derive! {
+//!         input,
 //!         // super trait's associated types
-//!         Some(Ident::new("Item", Span::call_site())),
-//!         _,
+//!         Item,
 //!         // trait
 //!         trait ExactSizeIterator: Iterator {
 //!             fn len(&self) -> usize;
 //!         }
-//!     )
-//!     .unwrap()
-//!     .into()
+//!     }
 //! }
 //!
 //! # #[cfg(all(feature = "std", not(feature = "std")))]
 //! #[proc_macro_derive(FusedIterator)]
 //! # pub fn _derive_fused_iterator(input: TokenStream) -> TokenStream { input }
 //! pub fn derive_fused_iterator(input: TokenStream) -> TokenStream {
-//!     let ast: DeriveInput = syn::parse(input).unwrap();
-//!     let data = EnumData::from_derive(&ast).unwrap();
-//!
-//!     derive_trait!(
-//!         data,
+//!     quick_derive! {
+//!         input,
 //!         // super trait's associated types
-//!         Some(Ident::new("Item", Span::call_site())),
+//!         Item,
 //!         // path
 //!         (std::iter::FusedIterator),
 //!         // trait
 //!         trait FusedIterator: Iterator {}
-//!     )
-//!     .unwrap()
-//!     .into()
+//!     }
 //! }
 //! # fn main() {}
 //! ```
@@ -160,9 +139,7 @@
 extern crate proc_macro2;
 extern crate quote;
 extern crate smallvec;
-
-#[doc(hidden)]
-pub extern crate syn;
+extern crate syn;
 
 #[macro_use]
 mod macros;
@@ -171,9 +148,19 @@ mod common;
 mod error;
 mod parse;
 
-#[doc(hidden)]
-pub use quote::quote;
-
-pub use self::common::*;
+pub use self::common::std_root;
 pub use self::error::{Error, Result, *};
 pub use self::parse::*;
+
+// Not public API.
+#[doc(hidden)]
+pub mod __rt {
+    #[doc(hidden)]
+    pub use crate::{common::path, derive_trait};
+    #[doc(hidden)]
+    pub use proc_macro2::{Ident, Span};
+    #[doc(hidden)]
+    pub use quote::quote;
+    #[doc(hidden)]
+    pub use syn::*;
+}

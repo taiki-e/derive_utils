@@ -1,5 +1,7 @@
 # Unreleased
 
+* Add quick_derive macro
+
 # 0.4.0 - 2018-12-22
 
 * Support `self: Pin<&Self>` and `self: Pin<&mut Self>`
