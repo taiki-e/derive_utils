@@ -126,7 +126,7 @@
 //! * `std`
 //!   * Enabled by default.
 //!   * Generate code for `std` library.
-//!   * Disable to generate code for `no_std`.
+//!   * Disable this feature to generate code for `no_std`.
 //!
 //! ## Rust Version
 //!

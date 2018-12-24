@@ -140,7 +140,7 @@ See [auto_enums crate](https://github.com/taiki-e/auto_enums/tree/master/derive/
 * `std`
   * Enabled by default.
   * Generate code for `std` library.
-  * Disable to generate code for `no_std`.
+  * Disable this feature to generate code for `no_std`.
 
 ## Rust Version
 
