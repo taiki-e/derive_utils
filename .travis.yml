@@ -7,6 +7,11 @@ matrix:
     - rust: stable
     - rust: beta
     - rust: nightly
+      script:
+        - cargo test
+        - cargo doc --no-deps
+        - cd "${TRAVIS_BUILD_DIR}/examples/example"
+        - cargo run --bin example
 
 before_script:
   - set -o errexit
