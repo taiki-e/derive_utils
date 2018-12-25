@@ -265,9 +265,9 @@ impl<'a> EnumImpl<'a> {
                         }
                         SelfPin::Mut => {
                             if self.unsafety || item.sig.unsafety.is_some() {
-                                quote!(match #pin::get_mut_unchecked(self) { #arms })
+                                quote!(match #pin::get_unchecked_mut(self) { #arms })
                             } else {
-                                quote!(unsafe { match #pin::get_mut_unchecked(self) { #arms } })
+                                quote!(unsafe { match #pin::get_unchecked_mut(self) { #arms } })
                             }
                         }
                     }

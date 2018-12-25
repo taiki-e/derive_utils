@@ -1,5 +1,8 @@
 # Unreleased
 
+* Fix Pin's implementation<br>
+  `Pin::get_mut_unchecked` renamed to `Pin::get_unchecked_mut` in [stabilization](https://github.com/rust-lang/rust/pull/56939).
+
 # 0.5.0 - 2018-12-23
 
 * Add quick_derive macro
