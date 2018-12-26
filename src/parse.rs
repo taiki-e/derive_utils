@@ -10,6 +10,12 @@ use error::Result;
 
 type Stack<T> = SmallVec<[T; 4]>;
 
+macro_rules! parse_quote {
+    ($($tt:tt)*) => {
+        $crate::syn::parse2($crate::quote::quote!($($tt)*))
+    };
+}
+
 pub struct EnumData {
     ident: Ident,
     generics: Generics,
@@ -136,8 +142,8 @@ pub fn build(impls: EnumImpl<'_>) -> TokenStream {
 impl<'a> EnumImpl<'a> {
     fn new(data: &'a EnumData, items: Vec<ImplItem>) -> Result<Self> {
         let ident = &data.ident;
-        let (_, ty_generics, _) = data.generics.split_for_impl();
-        syn::parse2(quote!(#ident #ty_generics))
+        let ty_generics = &data.generics;
+        parse_quote!(#ident #ty_generics)
             .map(|self_ty| EnumImpl {
                 data,
                 defaultness: false,
@@ -207,10 +213,14 @@ impl<'a> EnumImpl<'a> {
                 Some(FnArg::SelfRef(_)) | Some(FnArg::SelfValue(_)) => None,
                 Some(FnArg::Captured(ArgCaptured {
                     pat: Pat::Ident(ref pat),
-                    ty: Type::Path(ref path),
+                    ty:
+                        Type::Path(TypePath {
+                            qself: None,
+                            ref path,
+                        }),
                     ..
-                })) if pat.ident == "self" && path.qself.is_none() => {
-                    match &*path.path.clone().into_token_stream().to_string() {
+                })) if pat.ident == "self" => {
+                    match &*path.clone().into_token_stream().to_string() {
                         "Pin < & Self >"
                         | ":: std :: pin :: Pin < & Self >"
                         | ":: core :: pin :: Pin < & Self >"
@@ -243,7 +253,7 @@ impl<'a> EnumImpl<'a> {
                     } else {
                         self.arms(|v| quote!(#ident::#v(x) => #trait_::#method(x #(,#args)*)))
                     };
-                    quote!(match self { #arms })
+                    parse_quote!(match self { #arms })?
                 }
                 Some(SelfTypes::Pin(self_pin)) => {
                     self.unsafe_code = true;
@@ -261,16 +271,16 @@ impl<'a> EnumImpl<'a> {
                     match self_pin {
                         SelfPin::Ref => {
                             if self.unsafety || item.sig.unsafety.is_some() {
-                                quote!(match #pin::get_ref(self) { #arms })
+                                parse_quote!(match #pin::get_ref(self) { #arms })?
                             } else {
-                                quote!(unsafe { match #pin::get_ref(self) { #arms } })
+                                parse_quote!(unsafe { match #pin::get_ref(self) { #arms } })?
                             }
                         }
                         SelfPin::Mut => {
                             if self.unsafety || item.sig.unsafety.is_some() {
-                                quote!(match #pin::get_unchecked_mut(self) { #arms })
+                                parse_quote!(match #pin::get_unchecked_mut(self) { #arms })?
                             } else {
-                                quote!(unsafe { match #pin::get_unchecked_mut(self) { #arms } })
+                                parse_quote!(unsafe { match #pin::get_unchecked_mut(self) { #arms } })?
                             }
                         }
                     }
@@ -280,7 +290,7 @@ impl<'a> EnumImpl<'a> {
 
         self.push_item(ImplItem::Method(method_from_method(
             item,
-            block(vec![Stmt::Expr(syn::parse2(method)?)]),
+            block(vec![Stmt::Expr(method)]),
         )));
 
         Ok(())
@@ -312,7 +322,7 @@ impl<'a> EnumImpl<'a> {
                 if generics.params.is_empty() {
                     {
                         let trait_ = self.trait_.as_ref().map(|t| &t.ty);
-                        syn::parse2(quote!(type #ident = <#fst as #trait_>::#ident;))
+                        parse_quote!(type #ident = <#fst as #trait_>::#ident;)
                     }
                     .map(|ty| self.push_item(ImplItem::Type(ty)))?;
                 }
@@ -357,7 +367,7 @@ impl<'a> EnumImpl<'a> {
                 path.clone()
             } else {
                 let generics = generics_params(item.generics.params.iter());
-                syn::parse2(quote!(#path<#(#generics),*>))?
+                parse_quote!(#path<#(#generics),*>)?
             }
         };
 
@@ -380,33 +390,31 @@ impl<'a> EnumImpl<'a> {
             }
 
             let where_clause = &mut generics.make_where_clause().predicates;
-            where_clause.push(syn::parse2(quote!(#fst: #trait_))?);
-            data.fields.iter().skip(1).try_for_each(|variant| {
-                if types.is_empty() {
-                    syn::parse2(quote!(#variant: #trait_)).map(|f| where_clause.push(f))
-                } else {
-                    let types = types.iter().map(|(supertraits, ident)| {
-                        if *supertraits {
+            where_clause.push(parse_quote!(#fst: #trait_)?);
+            data.fields
+                .iter()
+                .skip(1)
+                .map(|variant| {
+                    if types.is_empty() {
+                        parse_quote!(#variant: #trait_)
+                    } else {
+                        let types = types.iter().map(|(supertraits, ident)| {
                             match item.supertraits.iter().next() {
-                                Some(TypeParamBound::Trait(trait_)) => {
+                                Some(TypeParamBound::Trait(trait_)) if *supertraits => {
                                     quote!(#ident = <#fst as #trait_>::#ident)
                                 }
-                                _ => unreachable!(),
+                                _ => quote!(#ident = <#fst as #trait_>::#ident),
                             }
+                        });
+                        if item.generics.params.is_empty() {
+                            parse_quote!(#variant: #path<#(#types),*>)
                         } else {
-                            quote!(#ident = <#fst as #trait_>::#ident)
+                            let generics = generics_params(item.generics.params.iter());
+                            parse_quote!(#variant: #path<#(#generics),*, #(#types),*>)
                         }
-                    });
-                    if item.generics.params.is_empty() {
-                        syn::parse2(quote!(#variant: #path<#(#types),*>))
-                            .map(|f| where_clause.push(f))
-                    } else {
-                        let generics = generics_params(item.generics.params.iter());
-                        syn::parse2(quote!(#variant: #path<#(#generics),*, #(#types),*>))
-                            .map(|f| where_clause.push(f))
                     }
-                }
-            })?;
+                })
+                .try_for_each(|res| res.map(|f| where_clause.push(f)))?;
         }
 
         if !item.generics.params.is_empty() {
@@ -426,7 +434,7 @@ impl<'a> EnumImpl<'a> {
 
         let ident = &data.ident;
         let ty_generics = &data.generics;
-        let mut impls = syn::parse2(quote!(#ident #ty_generics)).map(|self_ty| EnumImpl {
+        let mut impls = parse_quote!(#ident #ty_generics).map(|self_ty| EnumImpl {
             data,
             defaultness: false,
             unsafety: item.unsafety.is_some(),
