@@ -1,5 +1,7 @@
 # Unreleased
 
+# 0.5.1 - 2018-12-26
+
 * Fix Pin's implementation<br>
   `Pin::get_mut_unchecked` renamed to `Pin::get_unchecked_mut` in [stabilization](https://github.com/rust-lang/rust/pull/56939).
 
