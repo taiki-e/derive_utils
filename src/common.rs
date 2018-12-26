@@ -1,9 +1,6 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
-use smallvec::SmallVec;
 use syn::{punctuated::Punctuated, *};
-
-pub(crate) type Stack<T> = SmallVec<[T; 8]>;
 
 pub(crate) fn default<T: Default>() -> T {
     T::default()

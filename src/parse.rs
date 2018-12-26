@@ -2,10 +2,13 @@ use std::{borrow::Cow, mem};
 
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
+use smallvec::SmallVec;
 use syn::{punctuated::Punctuated, *};
 
 use common::*;
 use error::Result;
+
+type Stack<T> = SmallVec<[T; 4]>;
 
 pub struct EnumData {
     ident: Ident,
