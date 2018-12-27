@@ -25,7 +25,7 @@ travis-ci = { repository = "taiki-e/derive_utils" }
 proc-macro2 = "^0.4.13"
 quote = "^0.6.8"
 smallvec = "^0.6.7"
-syn = { version = "^0.15.19", features = ["full", "extra-traits"] }
+syn = { version = "^0.15.19", features = ["full"] }
 
 [features]
 # Default features.
