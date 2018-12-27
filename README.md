@@ -27,6 +27,8 @@ extern crate derive_utils;
 
 ## Examples
 
+`quick_derive!` macro make easy to write `proc_macro_derive` like deriving trait to enum so long as all variants are implemented that trait.
+
 ```rust
 extern crate derive_utils;
 extern crate proc_macro;
