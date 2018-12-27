@@ -1,5 +1,7 @@
 # Unreleased
 
+* Improve error messages
+
 # 0.5.2 - 2018-12-27
 
 * Hide some undocumented items from the public API

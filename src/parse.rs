@@ -521,8 +521,8 @@ impl EnumData {
     pub fn from_derive(ast: &DeriveInput) -> Result<Self> {
         let data = match &ast.data {
             Data::Enum(data) => data,
-            Data::Struct(_) => Err("doesn't work with structs")?,
-            Data::Union(_) => Err("doesn't work with unions")?,
+            Data::Struct(_) => Err("cannot be implemented for structs")?,
+            Data::Union(_) => Err("cannot be implemented for unions")?,
         };
 
         parse_variants(&data.variants).map(|(variants, fields)| EnumData {
