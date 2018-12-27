@@ -1,5 +1,7 @@
 # Unreleased
 
+* Hide some undocumented items from the public API
+
 # 0.5.1 - 2018-12-26
 
 * Fix Pin's implementation<br>

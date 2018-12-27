@@ -111,6 +111,7 @@ impl EnumData {
     }
 }
 
+#[doc(hidden)]
 pub struct Trait {
     /// `AsRef`
     path: Path,
@@ -119,6 +120,7 @@ pub struct Trait {
 }
 
 impl Trait {
+    #[doc(hidden)]
     pub fn new(path: Path, ty: Path) -> Self {
         Trait { path, ty }
     }
@@ -157,6 +159,7 @@ impl<'a> EnumImpl<'a> {
             .map_err(|e| e.into())
     }
 
+    #[doc(hidden)]
     pub fn trait_(&mut self) -> &mut Option<Trait> {
         &mut self.trait_
     }
