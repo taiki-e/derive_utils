@@ -13,14 +13,14 @@
 
 # 0.5.1 - 2018-12-26
 
-* Fix Pin's implementation<br>
+* Update to stable Pin API<br>
   `Pin::get_mut_unchecked` renamed to `Pin::get_unchecked_mut` in [stabilization](https://github.com/rust-lang/rust/pull/56939).
 
 # 0.5.0 - 2018-12-23
 
-* Add quick_derive macro
+* Add `quick_derive` macro
 
-* Remove derive_trait_with_capacity macro
+* Remove `derive_trait_with_capacity` macro
 
 # 0.4.0 - 2018-12-22
 
