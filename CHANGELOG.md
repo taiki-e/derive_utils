@@ -1,5 +1,8 @@
 # Unreleased
 
+* Improve macro implementations<br>
+  The trailing comma is supported.
+
 * Improve error messages
 
 # 0.5.2 - 2018-12-27
@@ -14,11 +17,13 @@
 # 0.5.0 - 2018-12-23
 
 * Add quick_derive macro
+
 * Remove derive_trait_with_capacity macro
 
 # 0.4.0 - 2018-12-22
 
 * Support `self: Pin<&Self>` and `self: Pin<&mut Self>`
+
 * Allow using the trait name as trait path
 
 # 0.3.0 - 2018-12-22

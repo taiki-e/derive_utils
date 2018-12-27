@@ -71,7 +71,7 @@ pub fn derive_fused_iterator(input: TokenStream) -> TokenStream {
         // path
         (std::iter::FusedIterator),
         // trait
-        trait FusedIterator: Iterator {}
+        trait FusedIterator: Iterator {},
     }
 }
 ```

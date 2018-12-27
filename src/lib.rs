@@ -54,7 +54,7 @@
 //!         // path
 //!         (std::iter::FusedIterator),
 //!         // trait
-//!         trait FusedIterator: Iterator {}
+//!         trait FusedIterator: Iterator {},
 //!     }
 //! }
 //! # fn main() {}
