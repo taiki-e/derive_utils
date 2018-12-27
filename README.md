@@ -6,7 +6,9 @@
 [![license](https://img.shields.io/crates/l/derive_utils.svg)](https://crates.io/crates/derive_utils/)
 [![Rustc Version](https://img.shields.io/badge/rustc-1.30+-lightgray.svg)](https://blog.rust-lang.org/2018/10/25/Rust-1.30.0.html)
 
-A procedural macro helper for easily writing `proc_macro_derive` like deriving trait to enum so long as all variants are implemented that trait.
+A procedural macro helper for easily writing [custom derives] for enums.
+
+[custom derives]: https://doc.rust-lang.org/reference/procedural-macros.html#derive-mode-macros
 
 ## Usage
 
@@ -72,7 +74,7 @@ pub fn derive_fused_iterator(input: TokenStream) -> TokenStream {
 }
 ```
 
-#### Generated code
+### Generated code
 
 When deriving for enum like the following:
 

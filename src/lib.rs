@@ -1,4 +1,6 @@
-//! A procedural macro helper for easily writing `proc_macro_derive` like deriving trait to enum so long as all variants are implemented that trait.
+//! A procedural macro helper for easily writing [custom derives] for enums.
+//!
+//! [custom derives]: https://doc.rust-lang.org/reference/procedural-macros.html#derive-mode-macros
 //!
 //! ## Examples
 //!
