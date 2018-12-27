@@ -537,8 +537,13 @@ impl EnumData {
 fn parse_variants(
     punctuated: &Punctuated<Variant, token::Comma>,
 ) -> Result<(Stack<Ident>, Stack<Type>)> {
+    #[inline(never)]
+    fn err(msg: &str) -> Result<()> {
+        Err(format!("cannot be implemented for enums with {}", msg).into())
+    }
+
     if punctuated.len() < 2 {
-        Err("cannot be implemented for enums with less than two variants")?;
+        err("less than two variants")?;
     }
 
     let mut variants = Stack::with_capacity(punctuated.len());
@@ -547,17 +552,17 @@ fn parse_variants(
         .iter()
         .try_for_each(|v| {
             if v.discriminant.is_some() {
-                Err("cannot be implemented for enums with discriminants")?;
+                err("discriminants")?;
             }
 
             match &v.fields {
                 Fields::Unnamed(f) => match f.unnamed.len() {
                     1 => fields.push(f.unnamed.iter().next().unwrap().ty.clone()),
-                    0 => Err("cannot be implemented for enums with zero fields")?,
-                    _ => Err("cannot be implemented for enums with multiple fields")?,
+                    0 => err("zero fields")?,
+                    _ => err("multiple fields")?,
                 },
-                Fields::Unit => Err("cannot be implemented for enums with units")?,
-                Fields::Named(_) => Err("cannot be implemented for enums with named fields")?,
+                Fields::Unit => err("with units")?,
+                Fields::Named(_) => err("named fields")?,
             }
 
             variants.push(v.ident.clone());
