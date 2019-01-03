@@ -1,5 +1,7 @@
 # Unreleased
 
+* Improve documentation
+
 # 0.5.3 - 2018-12-27
 
 * Improve macro implementations<br>

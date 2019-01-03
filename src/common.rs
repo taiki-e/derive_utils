@@ -26,9 +26,9 @@ pub(crate) fn block(stmts: Vec<Stmt>) -> Block {
     }
 }
 
-pub(crate) fn param_ident(ident: Ident) -> GenericParam {
+pub(crate) fn param_ident(attrs: Vec<Attribute>, ident: Ident) -> GenericParam {
     GenericParam::Type(TypeParam {
-        attrs: Vec::with_capacity(0),
+        attrs,
         ident,
         colon_token: None,
         bounds: Punctuated::new(),

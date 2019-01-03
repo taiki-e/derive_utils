@@ -24,6 +24,32 @@ pub struct EnumData {
 }
 
 impl EnumData {
+    /// Constructs a new `EnumData` from `&ItemEnum`.
+    pub fn from_item(item: &ItemEnum) -> Result<Self> {
+        parse_variants(&item.variants).map(|(variants, fields)| Self {
+            ident: item.ident.clone(),
+            generics: item.generics.clone(),
+            variants,
+            fields,
+        })
+    }
+
+    /// Constructs a new `EnumData` from `&DeriveInput`.
+    pub fn from_derive(ast: &DeriveInput) -> Result<Self> {
+        let data = match &ast.data {
+            Data::Enum(data) => data,
+            Data::Struct(_) => Err("cannot be implemented for structs")?,
+            Data::Union(_) => Err("cannot be implemented for unions")?,
+        };
+
+        parse_variants(&data.variants).map(|(variants, fields)| Self {
+            ident: ast.ident.clone(),
+            generics: ast.generics.clone(),
+            variants,
+            fields,
+        })
+    }
+
     /// Constructs a new `EnumImpl`.
     pub fn make_impl<'a>(&'a self) -> Result<EnumImpl<'a>> {
         EnumImpl::new(self, Vec::new())
@@ -122,10 +148,11 @@ pub struct Trait {
 impl Trait {
     #[doc(hidden)]
     pub fn new(path: Path, ty: Path) -> Self {
-        Trait { path, ty }
+        Self { path, ty }
     }
 }
 
+/// A builder for implementing traits for enums.
 pub struct EnumImpl<'a> {
     data: &'a EnumData,
     defaultness: bool,
@@ -146,7 +173,7 @@ impl<'a> EnumImpl<'a> {
         let ident = &data.ident;
         let ty_generics = &data.generics;
         parse_quote!(#ident #ty_generics)
-            .map(|self_ty| EnumImpl {
+            .map(|self_ty| Self {
                 data,
                 defaultness: false,
                 unsafety: false,
@@ -171,13 +198,15 @@ impl<'a> EnumImpl<'a> {
         self.generics.params.push(param);
     }
     pub fn push_generic_param_ident(&mut self, ident: Ident) {
-        self.push_generic_param(param_ident(ident));
+        self.push_generic_param(param_ident(Vec::with_capacity(0), ident));
     }
 
+    /// Appends a predicate to the back of `where`-clause.
     pub fn push_where_predicate(&mut self, predicate: WherePredicate) {
         self.generics.make_where_clause().predicates.push(predicate);
     }
 
+    /// Appends an item to impl items.
     pub fn push_item(&mut self, item: ImplItem) {
         self.items.push(item);
     }
@@ -200,7 +229,7 @@ impl<'a> EnumImpl<'a> {
         self.trait_.as_ref().map(|t| &t.path)
     }
 
-    /// Appends a method from `TraitItemMethod`.
+    /// Appends a method from `TraitItemMethod` to impl items.
     ///
     /// A method that has the first argument other than the following is error:
     /// - `&self`
@@ -212,33 +241,7 @@ impl<'a> EnumImpl<'a> {
     pub fn push_method(&mut self, item: TraitItemMethod) -> Result<()> {
         let method = {
             let mut args = item.sig.decl.inputs.iter();
-            let self_ty = match args.next() {
-                Some(FnArg::SelfRef(_)) | Some(FnArg::SelfValue(_)) => None,
-                Some(FnArg::Captured(ArgCaptured {
-                    pat: Pat::Ident(ref pat),
-                    ty:
-                        Type::Path(TypePath {
-                            qself: None,
-                            ref path,
-                        }),
-                    ..
-                })) if pat.ident == "self" => {
-                    match &*path.clone().into_token_stream().to_string() {
-                        "Pin < & Self >"
-                        | ":: std :: pin :: Pin < & Self >"
-                        | ":: core :: pin :: Pin < & Self >"
-                        | "std :: pin :: Pin < & Self >"
-                        | "core :: pin :: Pin < & Self >" => Some(SelfTypes::Pin(SelfPin::Ref)),
-                        "Pin < & mut Self >"
-                        | ":: std :: pin :: Pin < & mut Self >"
-                        | ":: core :: pin :: Pin < & mut Self >"
-                        | "std :: pin :: Pin < & mut Self >"
-                        | "core :: pin :: Pin < & mut Self >" => Some(SelfTypes::Pin(SelfPin::Mut)),
-                        _ => Err("unsupported first argument type")?,
-                    }
-                }
-                _ => Err("unsupported first argument type")?,
-            };
+            let self_ty = SelfTypes::parse(args.next())?;
             let args: &Stack<_> = &args
                 .map(|arg| match arg {
                     FnArg::Captured(arg) => Ok(&arg.pat),
@@ -249,7 +252,7 @@ impl<'a> EnumImpl<'a> {
             let method = &item.sig.ident;
             let ident = &self.data.ident;
             match self_ty {
-                None => {
+                SelfTypes::None => {
                     let trait_ = self.trait_path();
                     let arms = if trait_.is_none() {
                         self.arms(|v| quote!(#ident::#v(x) => x.#method(#(#args),*)))
@@ -258,7 +261,8 @@ impl<'a> EnumImpl<'a> {
                     };
                     parse_quote!(match self { #arms })?
                 }
-                Some(SelfTypes::Pin(self_pin)) => {
+
+                SelfTypes::Pin(self_pin) => {
                     self.unsafe_code = true;
                     let root = std_root();
                     let pin = quote!(#root::pin::Pin);
@@ -299,7 +303,7 @@ impl<'a> EnumImpl<'a> {
         Ok(())
     }
 
-    /// Appends items from `ItemTrait`.
+    /// Appends items from `ItemTrait` to impl items.
     ///
     /// `TraitItem::Method` that has the first argument other than the following is error:
     /// - `&self`
@@ -318,6 +322,7 @@ impl<'a> EnumImpl<'a> {
         let fst = self.data.fields.iter().next();
         item.items.into_iter().try_for_each(|item| match item {
             TraitItem::Const(_) | TraitItem::Macro(_) | TraitItem::Verbatim(_) => Ok(()),
+
             TraitItem::Type(TraitItemType {
                 ident, generics, ..
             }) => {
@@ -331,6 +336,7 @@ impl<'a> EnumImpl<'a> {
                 }
                 Ok(())
             }
+
             TraitItem::Method(method) => self.push_method(method),
         })
     }
@@ -351,14 +357,9 @@ impl<'a> EnumImpl<'a> {
             I: Iterator<Item = &'a GenericParam>,
         {
             iter.map(|param| match param {
-                GenericParam::Type(ty) => Cow::Owned(GenericParam::Type(TypeParam {
-                    attrs: ty.attrs.clone(),
-                    ident: ty.ident.clone(),
-                    colon_token: None,
-                    bounds: Punctuated::new(),
-                    eq_token: None,
-                    default: None,
-                })),
+                GenericParam::Type(ty) => {
+                    Cow::Owned(param_ident(ty.attrs.clone(), ty.ident.clone()))
+                }
                 param => Cow::Borrowed(param),
             })
         }
@@ -437,7 +438,7 @@ impl<'a> EnumImpl<'a> {
 
         let ident = &data.ident;
         let ty_generics = &data.generics;
-        let mut impls = parse_quote!(#ident #ty_generics).map(|self_ty| EnumImpl {
+        let mut impls = parse_quote!(#ident #ty_generics).map(|self_ty| Self {
             data,
             defaultness: false,
             unsafety: item.unsafety.is_some(),
@@ -496,6 +497,8 @@ fn method_from_method(method: TraitItemMethod, block: Block) -> ImplItemMethod {
 
 #[derive(PartialEq, Eq)]
 enum SelfTypes {
+    /// `&self`, `&mut self`, `self` or `mut self`
+    None,
     /// `self: Pin<&Self>` or `self: Pin<&mut Self>`
     Pin(SelfPin),
 }
@@ -508,29 +511,35 @@ enum SelfPin {
     Mut,
 }
 
-impl EnumData {
-    pub fn from_item(item: &ItemEnum) -> Result<Self> {
-        parse_variants(&item.variants).map(|(variants, fields)| EnumData {
-            ident: item.ident.clone(),
-            generics: item.generics.clone(),
-            variants,
-            fields,
-        })
-    }
+impl SelfTypes {
+    fn parse(arg: Option<&FnArg>) -> Result<Self> {
+        match arg {
+            Some(FnArg::SelfRef(_)) | Some(FnArg::SelfValue(_)) => Ok(SelfTypes::None),
 
-    pub fn from_derive(ast: &DeriveInput) -> Result<Self> {
-        let data = match &ast.data {
-            Data::Enum(data) => data,
-            Data::Struct(_) => Err("cannot be implemented for structs")?,
-            Data::Union(_) => Err("cannot be implemented for unions")?,
-        };
+            Some(FnArg::Captured(ArgCaptured {
+                pat: Pat::Ident(ref pat),
+                ty:
+                    Type::Path(TypePath {
+                        qself: None,
+                        ref path,
+                    }),
+                ..
+            })) if pat.ident == "self" => match &*path.clone().into_token_stream().to_string() {
+                "Pin < & Self >"
+                | ":: std :: pin :: Pin < & Self >"
+                | ":: core :: pin :: Pin < & Self >"
+                | "std :: pin :: Pin < & Self >"
+                | "core :: pin :: Pin < & Self >" => Ok(SelfTypes::Pin(SelfPin::Ref)),
+                "Pin < & mut Self >"
+                | ":: std :: pin :: Pin < & mut Self >"
+                | ":: core :: pin :: Pin < & mut Self >"
+                | "std :: pin :: Pin < & mut Self >"
+                | "core :: pin :: Pin < & mut Self >" => Ok(SelfTypes::Pin(SelfPin::Mut)),
+                _ => Err("unsupported first argument type")?,
+            },
 
-        parse_variants(&data.variants).map(|(variants, fields)| EnumData {
-            ident: ast.ident.clone(),
-            generics: ast.generics.clone(),
-            variants,
-            fields,
-        })
+            _ => Err("unsupported first argument type")?,
+        }
     }
 }
 

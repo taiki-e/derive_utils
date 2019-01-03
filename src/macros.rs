@@ -31,6 +31,7 @@ macro_rules! derive_trait {
     }};
 }
 
+/// A macro for to make easy to write `proc_macro_derive` like deriving trait to enum so long as all variants are implemented that trait.
 #[macro_export]
 macro_rules! quick_derive {
     (@inner $input:expr, |$ast:ident| $expr:expr) => {
