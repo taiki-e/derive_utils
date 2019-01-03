@@ -1,5 +1,7 @@
 # Unreleased
 
+# 0.5.4 - 2019-01-03
+
 * Improve documentation
 
 # 0.5.3 - 2018-12-27
