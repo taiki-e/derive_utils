@@ -1,7 +1,14 @@
 language: rust
 sudo: false
+cache: cargo
 
 matrix:
+  fast_finish: true
+
+  allow_failures:
+    - rust: nightly
+      env: ALLOW_FAILURES=true
+
   include:
     - rust: 1.30.0
     - rust: stable
@@ -12,6 +19,13 @@ matrix:
         - cargo doc --no-deps
         - cd "${TRAVIS_BUILD_DIR}/examples/example"
         - cargo run --bin example
+
+    - rust: nightly
+      name: cargo test (minimal versions)
+      env: ALLOW_FAILURES=true
+      script:
+        - cargo update -Zminimal-versions
+        - cargo test
 
 before_script:
   - set -o errexit
