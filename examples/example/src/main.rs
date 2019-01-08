@@ -20,6 +20,6 @@ fn main() {
     let iter2 = return_iter(10);
     assert_eq!(iter.len(), 11);
     assert_eq!(iter2.len(), 10);
-    assert_eq!(iter.fold(0, |sum, x| sum + x), -55);
-    assert_eq!(iter2.fold(0, |sum, x| sum + x), 45);
+    assert_eq!(iter.fold(0, |sum, x| sum - x), 55);
+    assert_eq!(iter2.fold(0, |sum, x| sum - x), -45);
 }
