@@ -343,7 +343,7 @@ impl<'a> EnumImpl<'a> {
 
     fn from_trait<I>(
         data: &'a EnumData,
-        trait_path: Path,
+        path: Path,
         items: Vec<ImplItem>,
         mut item: ItemTrait,
         supertraits_types: I,
@@ -364,7 +364,6 @@ impl<'a> EnumImpl<'a> {
             })
         }
 
-        let path = trait_path.clone();
         let mut generics = data.generics.clone();
         let trait_ = {
             if item.generics.params.is_empty() {
@@ -443,7 +442,7 @@ impl<'a> EnumImpl<'a> {
             defaultness: false,
             unsafety: item.unsafety.is_some(),
             generics,
-            trait_: Some(Trait::new(trait_path, trait_)),
+            trait_: Some(Trait::new(path, trait_)),
             self_ty: Box::new(self_ty),
             items,
             unsafe_code: false,
