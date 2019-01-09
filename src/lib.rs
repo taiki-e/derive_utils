@@ -131,7 +131,7 @@
 //!
 
 #![recursion_limit = "256"]
-#![doc(html_root_url = "https://docs.rs/derive_utils/0.5.4")]
+#![doc(html_root_url = "https://docs.rs/derive_utils/0.6.0")]
 
 extern crate proc_macro2;
 extern crate quote;

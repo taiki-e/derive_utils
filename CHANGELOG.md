@@ -1,5 +1,7 @@
 # Unreleased
 
+# 0.6.0 - 2019-01-09
+
 * Remove `std` feature and `std_root` function<br>
   `derive_utils` can generate accurate code without `std` feature.
 
