@@ -18,7 +18,7 @@ matrix:
         - cargo test
         - cargo doc --no-deps
         - cd "${TRAVIS_BUILD_DIR}/examples/example"
-        - cargo run --bin example
+        - cargo run --bin example --all-features
 
     - rust: nightly
       name: cargo test (minimal versions)

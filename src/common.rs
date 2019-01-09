@@ -1,5 +1,4 @@
-use proc_macro2::{Ident, Span, TokenStream};
-use quote::quote;
+use proc_macro2::{Ident, Span};
 use syn::{punctuated::Punctuated, *};
 
 pub(crate) fn default<T: Default>() -> T {
@@ -35,16 +34,4 @@ pub(crate) fn param_ident(attrs: Vec<Attribute>, ident: Ident) -> GenericParam {
         eq_token: None,
         default: None,
     })
-}
-
-/// Returns standard library's root.
-///
-/// In default returns `::std`.
-/// if disabled default crate feature, returned `::core`.
-pub fn std_root() -> TokenStream {
-    #[cfg(feature = "std")]
-    let root = quote!(::std);
-    #[cfg(not(feature = "std"))]
-    let root = quote!(::core);
-    root
 }

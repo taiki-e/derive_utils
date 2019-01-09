@@ -5,8 +5,8 @@ use quote::{quote, ToTokens};
 use smallvec::SmallVec;
 use syn::{punctuated::Punctuated, *};
 
-use common::*;
-use error::Result;
+use crate::common::*;
+use crate::error::Result;
 
 type Stack<T> = SmallVec<[T; 4]>;
 
@@ -262,10 +262,8 @@ impl<'a> EnumImpl<'a> {
                     parse_quote!(match self { #arms })?
                 }
 
-                SelfTypes::Pin(self_pin) => {
+                SelfTypes::Pin(self_pin, pin) => {
                     self.unsafe_code = true;
-                    let root = std_root();
-                    let pin = quote!(#root::pin::Pin);
                     let trait_ = self.trait_path();
                     let arms = if trait_.is_none() {
                         self.arms(
@@ -494,15 +492,13 @@ fn method_from_method(method: TraitItemMethod, block: Block) -> ImplItemMethod {
     }
 }
 
-#[derive(PartialEq, Eq)]
 enum SelfTypes {
     /// `&self`, `&mut self`, `self` or `mut self`
     None,
     /// `self: Pin<&Self>` or `self: Pin<&mut Self>`
-    Pin(SelfPin),
+    Pin(SelfPin, Path),
 }
 
-#[derive(PartialEq, Eq)]
 enum SelfPin {
     /// `self: Pin<&Self>`
     Ref,
@@ -512,32 +508,40 @@ enum SelfPin {
 
 impl SelfTypes {
     fn parse(arg: Option<&FnArg>) -> Result<Self> {
+        fn remove_last_path_arg(path: &Path) -> Path {
+            let mut path = path.clone();
+            path.segments.last_mut().unwrap().into_value().arguments = PathArguments::None;
+            path
+        }
+
+        const ERR: &str = "unsupported first argument type";
+
         match arg {
             Some(FnArg::SelfRef(_)) | Some(FnArg::SelfValue(_)) => Ok(SelfTypes::None),
 
             Some(FnArg::Captured(ArgCaptured {
-                pat: Pat::Ident(ref pat),
-                ty:
-                    Type::Path(TypePath {
-                        qself: None,
-                        ref path,
-                    }),
+                pat: Pat::Ident(PatIdent { ident, .. }),
+                ty: Type::Path(TypePath { qself: None, path }),
                 ..
-            })) if pat.ident == "self" => match &*path.clone().into_token_stream().to_string() {
+            })) if ident == "self" => match &*path.clone().into_token_stream().to_string() {
                 "Pin < & Self >"
                 | ":: std :: pin :: Pin < & Self >"
                 | ":: core :: pin :: Pin < & Self >"
                 | "std :: pin :: Pin < & Self >"
-                | "core :: pin :: Pin < & Self >" => Ok(SelfTypes::Pin(SelfPin::Ref)),
+                | "core :: pin :: Pin < & Self >" => {
+                    Ok(SelfTypes::Pin(SelfPin::Ref, remove_last_path_arg(path)))
+                }
                 "Pin < & mut Self >"
                 | ":: std :: pin :: Pin < & mut Self >"
                 | ":: core :: pin :: Pin < & mut Self >"
                 | "std :: pin :: Pin < & mut Self >"
-                | "core :: pin :: Pin < & mut Self >" => Ok(SelfTypes::Pin(SelfPin::Mut)),
-                _ => Err("unsupported first argument type")?,
+                | "core :: pin :: Pin < & mut Self >" => {
+                    Ok(SelfTypes::Pin(SelfPin::Mut, remove_last_path_arg(path)))
+                }
+                _ => Err(ERR)?,
             },
 
-            _ => Err("unsupported first argument type")?,
+            _ => Err(ERR)?,
         }
     }
 }
