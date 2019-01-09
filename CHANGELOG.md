@@ -3,6 +3,9 @@
 * Remove `std` feature and `std_root` function<br>
   `derive_utils` can generate accurate code without `std` feature.
 
+* Remove deprecated push_method_pin* methods<br>
+  Use `push_method` instead.
+
 # 0.5.4 - 2019-01-03
 
 * Improve documentation

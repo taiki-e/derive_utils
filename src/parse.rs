@@ -211,15 +211,6 @@ impl<'a> EnumImpl<'a> {
         self.items.push(item);
     }
 
-    #[deprecated(note = "Use `push_method` instead")]
-    pub fn push_method_pin_ref(&mut self, item: TraitItemMethod) -> Result<()> {
-        self.push_method(item)
-    }
-    #[deprecated(note = "Use `push_method` instead")]
-    pub fn push_method_pin_mut(&mut self, item: TraitItemMethod) -> Result<()> {
-        self.push_method(item)
-    }
-
     fn arms<F: FnMut(&Ident) -> TokenStream>(&self, f: F) -> TokenStream {
         let arms = self.data.variants.iter().map(f);
         quote!(#(#arms,)*)
