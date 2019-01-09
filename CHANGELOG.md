@@ -6,6 +6,8 @@
 * Remove deprecated push_method_pin* methods<br>
   Use `push_method` instead.
 
+* Improve documentation
+
 # 0.5.4 - 2019-01-03
 
 * Improve documentation

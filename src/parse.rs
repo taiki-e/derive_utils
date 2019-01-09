@@ -16,6 +16,7 @@ macro_rules! parse_quote {
     };
 }
 
+/// A structure to make trait implementation to enums more efficient.
 pub struct EnumData {
     ident: Ident,
     generics: Generics,
@@ -70,6 +71,8 @@ impl EnumData {
     /// - `self: Pin<&Self>`
     /// - `self: Pin<&mut Self>`
     ///
+    /// *`Pin` can be a full path from `core` and `std` (e.g. `std::pin::Pin`, `::core::pin::Pin`).*
+    ///
     /// The following items are ignored:
     /// - Generic associated types (GAT) (`TraitItem::Method` that has generics)
     /// - `TraitItem::Const`
@@ -90,19 +93,9 @@ impl EnumData {
 
     /// Constructs a new `EnumImpl` from `ItemTrait` with the specified capacity.
     ///
-    /// `TraitItem::Method` that has the first argument other than the following is error:
-    /// - `&self`
-    /// - `&mut self`
-    /// - `self`
-    /// - `mut self`
-    /// - `self: Pin<&Self>`
-    /// - `self: Pin<&mut Self>`
+    /// See [`EnumData::make_impl_trait`] for supported item types.
     ///
-    /// The following items are ignored:
-    /// - Generic associated types (GAT) (`TraitItem::Method` that has generics)
-    /// - `TraitItem::Const`
-    /// - `TraitItem::Macro`
-    /// - `TraitItem::Verbatim`
+    /// [`EnumData::make_impl_trait`]: ./struct.EnumData.html#method.make_impl_trait
     pub fn impl_trait_with_capacity<'a, I>(
         &'a self,
         capacity: usize,
@@ -229,6 +222,8 @@ impl<'a> EnumImpl<'a> {
     /// - `mut self`
     /// - `self: Pin<&Self>`
     /// - `self: Pin<&mut Self>`
+    ///
+    /// *`Pin` can be a full path from `core` and `std` (e.g. `std::pin::Pin`, `::core::pin::Pin`).*
     pub fn push_method(&mut self, item: TraitItemMethod) -> Result<()> {
         let method = {
             let mut args = item.sig.decl.inputs.iter();
@@ -294,19 +289,9 @@ impl<'a> EnumImpl<'a> {
 
     /// Appends items from `ItemTrait` to impl items.
     ///
-    /// `TraitItem::Method` that has the first argument other than the following is error:
-    /// - `&self`
-    /// - `&mut self`
-    /// - `self`
-    /// - `mut self`
-    /// - `self: Pin<&Self>`
-    /// - `self: Pin<&mut Self>`
+    /// See [`EnumData::make_impl_trait`] for supported item types.
     ///
-    /// The following items are ignored:
-    /// - Generic associated types (GAT) (`TraitItem::Method` that has generics)
-    /// - `TraitItem::Const`
-    /// - `TraitItem::Macro`
-    /// - `TraitItem::Verbatim`
+    /// [`EnumData::make_impl_trait`]: ./struct.EnumData.html#method.make_impl_trait
     pub fn append_items_from_trait(&mut self, item: ItemTrait) -> Result<()> {
         let fst = self.data.fields.iter().next();
         item.items.into_iter().try_for_each(|item| match item {
