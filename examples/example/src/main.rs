@@ -1,17 +1,20 @@
+#![cfg_attr(feature = "pin", feature(futures_api))]
+
 #[macro_use]
 extern crate example_derive;
 
 #[derive(Iterator, ExactSizeIterator, FusedIterator)]
-enum Iter<A, B> {
+#[cfg_attr(feature = "pin", derive(Future))]
+enum Enum<A, B> {
     A(A),
     B(B),
 }
 
 fn return_iter(x: i16) -> impl ExactSizeIterator<Item = i16> {
     if x < 0 {
-        Iter::A(x..=0)
+        Enum::A(x..=0)
     } else {
-        Iter::B(0..x)
+        Enum::B(0..x)
     }
 }
 

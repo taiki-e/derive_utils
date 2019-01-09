@@ -139,13 +139,6 @@ where
 
 See [auto_enums crate](https://github.com/taiki-e/auto_enums/tree/master/derive/src/derive) for more examples.
 
-## Crate Features
-
-* `std`
-  * Enabled by default.
-  * Generate code for `std` library.
-  * Disable this feature to generate code for `no_std`.
-
 ## Rust Version
 
 The current minimum required Rust version is 1.30.
