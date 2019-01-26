@@ -2,6 +2,8 @@
 
 * Improve support for `self: Pin<&Self>` and `self: Pin<&mut Self>`
 
+* Update minimum smallvec version to 0.6.8
+
 # 0.6.0 - 2019-01-09
 
 * Remove `std` feature and `std_root` function<br>
