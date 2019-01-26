@@ -71,8 +71,6 @@ impl EnumData {
     /// - `self: Pin<&Self>`
     /// - `self: Pin<&mut Self>`
     ///
-    /// *`Pin` can be a full path from `core` and `std` (e.g. `std::pin::Pin`, `::core::pin::Pin`).*
-    ///
     /// The following items are ignored:
     /// - Generic associated types (GAT) (`TraitItem::Method` that has generics)
     /// - `TraitItem::Const`
@@ -222,8 +220,6 @@ impl<'a> EnumImpl<'a> {
     /// - `mut self`
     /// - `self: Pin<&Self>`
     /// - `self: Pin<&mut Self>`
-    ///
-    /// *`Pin` can be a full path from `core` and `std` (e.g. `std::pin::Pin`, `::core::pin::Pin`).*
     pub fn push_method(&mut self, item: TraitItemMethod) -> Result<()> {
         let method = {
             let mut args = item.sig.decl.inputs.iter();
@@ -499,19 +495,13 @@ impl SelfTypes {
                 pat: Pat::Ident(PatIdent { ident, .. }),
                 ty: Type::Path(TypePath { qself: None, path }),
                 ..
-            })) if ident == "self" => match &*path.clone().into_token_stream().to_string() {
-                "Pin < & Self >"
-                | ":: std :: pin :: Pin < & Self >"
-                | ":: core :: pin :: Pin < & Self >"
-                | "std :: pin :: Pin < & Self >"
-                | "core :: pin :: Pin < & Self >" => {
-                    Ok(SelfTypes::Pin(SelfPin::Ref, remove_last_path_arg(path)))
-                }
-                "Pin < & mut Self >"
-                | ":: std :: pin :: Pin < & mut Self >"
-                | ":: core :: pin :: Pin < & mut Self >"
-                | "std :: pin :: Pin < & mut Self >"
-                | "core :: pin :: Pin < & mut Self >" => {
+            })) if ident == "self" => match &*path.segments[path.segments.len() - 1]
+                .clone()
+                .into_token_stream()
+                .to_string()
+            {
+                "Pin < & Self >" => Ok(SelfTypes::Pin(SelfPin::Ref, remove_last_path_arg(path))),
+                "Pin < & mut Self >" => {
                     Ok(SelfTypes::Pin(SelfPin::Mut, remove_last_path_arg(path)))
                 }
                 _ => Err(ERR)?,
