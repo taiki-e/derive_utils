@@ -1,5 +1,7 @@
 # Unreleased
 
+# 0.6.1 - 2019-01-26
+
 * Improve support for `self: Pin<&Self>` and `self: Pin<&mut Self>`
 
 * Update minimum smallvec version to 0.6.8
