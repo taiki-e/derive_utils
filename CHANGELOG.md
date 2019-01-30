@@ -2,6 +2,8 @@
 
 * Add `Error::to_compile_error` method
 
+* Hide some undocumented items from the public API
+
 # 0.6.1 - 2019-01-26
 
 * Improve support for `self: Pin<&Self>` and `self: Pin<&mut Self>`

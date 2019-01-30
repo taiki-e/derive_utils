@@ -155,8 +155,14 @@ pub struct EnumImpl<'a> {
     unsafe_code: bool,
 }
 
+#[doc(hidden)]
 pub fn build(impls: EnumImpl<'_>) -> TokenStream {
     impls.build()
+}
+
+#[doc(hidden)]
+pub fn build_item(impls: EnumImpl<'_>) -> ItemImpl {
+    impls.build_item()
 }
 
 impl<'a> EnumImpl<'a> {

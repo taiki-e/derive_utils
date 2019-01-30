@@ -154,10 +154,11 @@ pub mod __rt {
     #[doc(hidden)]
     pub use crate::{
         common::{ident_call_site, path},
-        derive_trait,
+        derive_trait, derive_trait_internal,
+        parse::build_item,
     };
     #[doc(hidden)]
-    pub use quote::quote;
+    pub use quote::{quote, ToTokens};
     #[doc(hidden)]
     pub use syn::*;
 }
