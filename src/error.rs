@@ -13,10 +13,24 @@ pub fn compile_err(msg: &str) -> TokenStream {
 
 #[derive(Debug)]
 pub enum Error {
-    /// `syn::Error`.
+    /// [`syn::Error`].
+    ///
+    /// [`syn::Error`]: https://docs.rs/syn/0.15/syn/struct.Error.html
     Syn(syn::Error),
     /// other error.
     Other(String),
+}
+
+impl Error {
+    /// Render the error as an invocation of [`compile_error!`].
+    ///
+    /// [`compile_error!`]: https://doc.rust-lang.org/std/macro.compile_error.html
+    pub fn to_compile_error(&self) -> TokenStream {
+        match self {
+            Error::Syn(e) => e.to_compile_error(),
+            Error::Other(msg) => compile_err(msg),
+        }
+    }
 }
 
 impl fmt::Display for Error {
