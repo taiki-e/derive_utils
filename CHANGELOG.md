@@ -1,5 +1,7 @@
 # Unreleased
 
+# 0.6.2 - 2019-01-30
+
 * Add `Error::to_compile_error` method
 
 * Hide some undocumented items from the public API
