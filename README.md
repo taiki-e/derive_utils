@@ -1,6 +1,6 @@
 # derive_utils
 
-[![Build Status](http://img.shields.io/travis/taiki-e/derive_utils.svg)](https://travis-ci.org/taiki-e/derive_utils)
+[![Build Status](https://travis-ci.org/taiki-e/derive_utils.svg?branch=master)](https://travis-ci.org/taiki-e/derive_utils)
 [![version](https://img.shields.io/crates/v/derive_utils.svg)](https://crates.io/crates/derive_utils/)
 [![documentation](https://docs.rs/derive_utils/badge.svg)](https://docs.rs/derive_utils/)
 [![license](https://img.shields.io/crates/l/derive_utils.svg)](https://crates.io/crates/derive_utils/)
