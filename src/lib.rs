@@ -132,6 +132,7 @@
 
 #![recursion_limit = "256"]
 #![doc(html_root_url = "https://docs.rs/derive_utils/0.6.2")]
+#![deny(bare_trait_objects, elided_lifetimes_in_paths)]
 
 extern crate proc_macro2;
 extern crate quote;
