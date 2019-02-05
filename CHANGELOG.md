@@ -1,5 +1,9 @@
 # Unreleased
 
+* Update minimum syn version to 0.15.22
+
+* Remove dependency on smallvec
+
 # 0.6.2 - 2019-01-30
 
 * Add `Error::to_compile_error` method

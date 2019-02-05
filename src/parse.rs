@@ -2,13 +2,10 @@ use std::{borrow::Cow, mem};
 
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
-use smallvec::SmallVec;
 use syn::{punctuated::Punctuated, *};
 
 use crate::common::*;
 use crate::error::Result;
-
-type Stack<T> = SmallVec<[T; 4]>;
 
 macro_rules! parse_quote {
     ($($tt:tt)*) => {
@@ -20,8 +17,8 @@ macro_rules! parse_quote {
 pub struct EnumData {
     ident: Ident,
     generics: Generics,
-    variants: Stack<Ident>,
-    fields: Stack<Type>,
+    variants: Vec<Ident>,
+    fields: Vec<Type>,
 }
 
 impl EnumData {
@@ -230,12 +227,12 @@ impl<'a> EnumImpl<'a> {
         let method = {
             let mut args = item.sig.decl.inputs.iter();
             let self_ty = SelfTypes::parse(args.next())?;
-            let args: &Stack<_> = &args
+            let args = &args
                 .map(|arg| match arg {
                     FnArg::Captured(arg) => Ok(&arg.pat),
                     _ => Err("unsupported arguments type")?,
                 })
-                .collect::<Result<_>>()?;
+                .collect::<Result<Vec<_>>>()?;
 
             let method = &item.sig.ident;
             let ident = &self.data.ident;
@@ -352,7 +349,7 @@ impl<'a> EnumImpl<'a> {
 
         {
             let fst = data.fields.iter().next();
-            let mut types: Stack<_> = item
+            let mut types: Vec<_> = item
                 .items
                 .iter()
                 .filter_map(|item| match item {
@@ -520,7 +517,7 @@ impl SelfTypes {
 
 fn parse_variants(
     punctuated: &Punctuated<Variant, token::Comma>,
-) -> Result<(Stack<Ident>, Stack<Type>)> {
+) -> Result<(Vec<Ident>, Vec<Type>)> {
     #[inline(never)]
     fn err(msg: &str) -> Result<()> {
         Err(format!("cannot be implemented for enums with {}", msg).into())
@@ -530,8 +527,8 @@ fn parse_variants(
         err("less than two variants")?;
     }
 
-    let mut variants = Stack::with_capacity(punctuated.len());
-    let mut fields = Stack::with_capacity(punctuated.len());
+    let mut variants = Vec::with_capacity(punctuated.len());
+    let mut fields = Vec::with_capacity(punctuated.len());
     punctuated
         .iter()
         .try_for_each(|v| {
