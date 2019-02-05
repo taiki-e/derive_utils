@@ -2,7 +2,7 @@ use std::{borrow::Cow, mem};
 
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
-use syn::{punctuated::Punctuated, *};
+use syn::{punctuated::Punctuated, token::Comma, *};
 
 use crate::common::*;
 use crate::error::Result;
@@ -11,6 +11,71 @@ macro_rules! parse_quote {
     ($($tt:tt)*) => {
         $crate::syn::parse2($crate::quote::quote!($($tt)*))
     };
+}
+
+/// The elements that compose enums.
+pub struct EnumElements<'a> {
+    pub attrs: &'a [Attribute],
+    pub ident: &'a Ident,
+    pub generics: &'a Generics,
+    pub variants: &'a Punctuated<Variant, Comma>,
+}
+
+/// A type that might be enums.
+pub trait MaybeEnum {
+    /// Get the elements that compose enums.
+    fn elements(&self) -> Result<EnumElements<'_>>;
+}
+
+impl<'a, E: ?Sized + MaybeEnum> MaybeEnum for &'a mut E {
+    fn elements(&self) -> Result<EnumElements<'_>> {
+        (**self).elements()
+    }
+}
+impl<'a, E: ?Sized + MaybeEnum> MaybeEnum for &'a E {
+    fn elements(&self) -> Result<EnumElements<'_>> {
+        (**self).elements()
+    }
+}
+impl MaybeEnum for ItemEnum {
+    fn elements(&self) -> Result<EnumElements<'_>> {
+        Ok(EnumElements {
+            attrs: &self.attrs,
+            ident: &self.ident,
+            generics: &self.generics,
+            variants: &self.variants,
+        })
+    }
+}
+impl MaybeEnum for Item {
+    fn elements(&self) -> Result<EnumElements<'_>> {
+        match self {
+            Item::Enum(item) => MaybeEnum::elements(item),
+            _ => Err("may only be used on enums")?,
+        }
+    }
+}
+impl MaybeEnum for Stmt {
+    fn elements(&self) -> Result<EnumElements<'_>> {
+        match self {
+            Stmt::Item(Item::Enum(item)) => MaybeEnum::elements(item),
+            _ => Err("may only be used on enums")?,
+        }
+    }
+}
+impl MaybeEnum for DeriveInput {
+    fn elements(&self) -> Result<EnumElements<'_>> {
+        match &self.data {
+            Data::Enum(data) => Ok(EnumElements {
+                attrs: &self.attrs,
+                ident: &self.ident,
+                generics: &self.generics,
+                variants: &data.variants,
+            }),
+            Data::Struct(_) => Err("cannot be implemented for structs")?,
+            Data::Union(_) => Err("cannot be implemented for unions")?,
+        }
+    }
 }
 
 /// A structure to make trait implementation to enums more efficient.
@@ -22,30 +87,25 @@ pub struct EnumData {
 }
 
 impl EnumData {
-    /// Constructs a new `EnumData` from `&ItemEnum`.
-    pub fn from_item(item: &ItemEnum) -> Result<Self> {
-        parse_variants(&item.variants).map(|(variants, fields)| Self {
-            ident: item.ident.clone(),
-            generics: item.generics.clone(),
+    /// Constructs a new `EnumData`.
+    pub fn new<E: MaybeEnum>(maybe_enum: &E) -> Result<Self> {
+        let elements = MaybeEnum::elements(maybe_enum)?;
+        parse_variants(elements.variants).map(|(variants, fields)| Self {
+            ident: elements.ident.clone(),
+            generics: elements.generics.clone(),
             variants,
             fields,
         })
     }
 
+    /// Constructs a new `EnumData` from `&ItemEnum`.
+    pub fn from_item(item: &ItemEnum) -> Result<Self> {
+        Self::new(item)
+    }
+
     /// Constructs a new `EnumData` from `&DeriveInput`.
     pub fn from_derive(ast: &DeriveInput) -> Result<Self> {
-        let data = match &ast.data {
-            Data::Enum(data) => data,
-            Data::Struct(_) => Err("cannot be implemented for structs")?,
-            Data::Union(_) => Err("cannot be implemented for unions")?,
-        };
-
-        parse_variants(&data.variants).map(|(variants, fields)| Self {
-            ident: ast.ident.clone(),
-            generics: ast.generics.clone(),
-            variants,
-            fields,
-        })
+        Self::new(ast)
     }
 
     /// Constructs a new `EnumImpl`.

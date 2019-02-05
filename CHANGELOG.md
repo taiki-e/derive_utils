@@ -4,6 +4,8 @@
 
 * Remove dependency on smallvec
 
+* Add `EnumData::new` method
+
 # 0.6.2 - 2019-01-30
 
 * Add `Error::to_compile_error` method
