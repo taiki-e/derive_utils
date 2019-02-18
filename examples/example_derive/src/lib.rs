@@ -54,7 +54,7 @@ pub fn derive_future(input: TokenStream) -> TokenStream {
         // trait
         trait Future {
             type Output;
-            fn poll(self: std::pin::Pin<&mut Self>, lw: &std::task::LocalWaker)
+            fn poll(self: std::pin::Pin<&mut Self>, waker: &std::task::Waker)
                 -> std::task::Poll<Self::Output>;
         }
     }
