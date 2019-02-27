@@ -237,7 +237,7 @@ impl<'a> EnumImpl<'a> {
                 items,
                 unsafe_code: false,
             })
-            .map_err(|e| e.into())
+            .map_err(Into::into)
     }
 
     #[doc(hidden)]
