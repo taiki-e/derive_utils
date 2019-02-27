@@ -2,78 +2,73 @@
 
 # 0.6.3 - 2019-02-05
 
-* Update minimum syn version to 0.15.22
+* Add `EnumData::new` method.
 
-* Remove dependency on smallvec
+* Update minimum syn version to 0.15.22.
 
-* Add `EnumData::new` method
+* Remove dependency on smallvec.
 
 # 0.6.2 - 2019-01-30
 
-* Add `Error::to_compile_error` method
+* Add `Error::to_compile_error` method.
 
-* Hide some undocumented items from the public API
+* Hide some undocumented items from the public API.
 
 # 0.6.1 - 2019-01-26
 
-* Improve support for `self: Pin<&Self>` and `self: Pin<&mut Self>`
+* Improve support for `self: Pin<&Self>` and `self: Pin<&mut Self>`.
 
-* Update minimum smallvec version to 0.6.8
+* Update minimum smallvec version to 0.6.8.
 
 # 0.6.0 - 2019-01-09
 
-* Remove `std` feature and `std_root` function<br>
-  `derive_utils` can generate accurate code without `std` feature.
+* Remove `std` feature and `std_root` function. `derive_utils` can generate accurate code without `std` feature.
 
-* Remove deprecated push_method_pin* methods<br>
-  Use `push_method` instead.
+* Remove deprecated push_method_pin* methods. Use `push_method` instead.
 
-* Improve documentation
+* Improve documentation.
 
 # 0.5.4 - 2019-01-03
 
-* Improve documentation
+* Improve documentation.
 
 # 0.5.3 - 2018-12-27
 
-* Improve macro implementations<br>
-  The trailing comma is supported.
+* Improve macro implementations. The trailing comma is supported.
 
-* Improve error messages
+* Improve error messages.
 
 # 0.5.2 - 2018-12-27
 
-* Hide some undocumented items from the public API
+* Hide some undocumented items from the public API.
 
 # 0.5.1 - 2018-12-26
 
-* Update to stable Pin API<br>
-  `Pin::get_mut_unchecked` renamed to `Pin::get_unchecked_mut` in [stabilization](https://github.com/rust-lang/rust/pull/56939).
+* Update to stable Pin API. `Pin::get_mut_unchecked` renamed to `Pin::get_unchecked_mut` in [stabilization](https://github.com/rust-lang/rust/pull/56939).
 
 # 0.5.0 - 2018-12-23
 
-* Add `quick_derive` macro
+* Add `quick_derive` macro.
 
-* Remove `derive_trait_with_capacity` macro
+* Remove `derive_trait_with_capacity` macro.
 
 # 0.4.0 - 2018-12-22
 
-* Support `self: Pin<&Self>` and `self: Pin<&mut Self>`
+* Support `self: Pin<&Self>` and `self: Pin<&mut Self>`.
 
-* Allow using the trait name as trait path
+* Allow using the trait name as trait path.
 
 # 0.3.0 - 2018-12-22
 
-* Add `derive_trait` and `derive_trait_with_capacity` macros<br>
-  With this change, the minimum version will go up to 1.30.
+* Add `derive_trait` and `derive_trait_with_capacity` macros. With this change, the minimum required version will go up to Rust 1.30.
 
 # 0.2.0 - 2018-12-20
 
-* Support Rust 1.27
+* Support Rust 1.27.
 
 # 0.1.1 - 2018-12-15
 
-* Add `std::error::Error` impls for `derive_utils::Error`
+* Add `std::error::Error` impls for `derive_utils::Error`.
 
 # 0.1.0 - 2018-12-15
 
