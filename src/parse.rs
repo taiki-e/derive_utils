@@ -4,8 +4,7 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
 use syn::{punctuated::Punctuated, token::Comma, *};
 
-use crate::common::*;
-use crate::error::Result;
+use crate::{common::*,error::Result};
 
 macro_rules! parse_quote {
     ($($tt:tt)*) => {
@@ -27,16 +26,18 @@ pub trait MaybeEnum {
     fn elements(&self) -> Result<EnumElements<'_>>;
 }
 
-impl<'a, E: ?Sized + MaybeEnum> MaybeEnum for &'a mut E {
-    fn elements(&self) -> Result<EnumElements<'_>> {
-        (**self).elements()
-    }
-}
 impl<'a, E: ?Sized + MaybeEnum> MaybeEnum for &'a E {
     fn elements(&self) -> Result<EnumElements<'_>> {
         (**self).elements()
     }
 }
+
+impl<'a, E: ?Sized + MaybeEnum> MaybeEnum for &'a mut E {
+    fn elements(&self) -> Result<EnumElements<'_>> {
+        (**self).elements()
+    }
+}
+
 impl MaybeEnum for ItemEnum {
     fn elements(&self) -> Result<EnumElements<'_>> {
         Ok(EnumElements {
@@ -47,6 +48,7 @@ impl MaybeEnum for ItemEnum {
         })
     }
 }
+
 impl MaybeEnum for Item {
     fn elements(&self) -> Result<EnumElements<'_>> {
         match self {
@@ -55,6 +57,7 @@ impl MaybeEnum for Item {
         }
     }
 }
+
 impl MaybeEnum for Stmt {
     fn elements(&self) -> Result<EnumElements<'_>> {
         match self {
@@ -63,6 +66,7 @@ impl MaybeEnum for Stmt {
         }
     }
 }
+
 impl MaybeEnum for DeriveInput {
     fn elements(&self) -> Result<EnumElements<'_>> {
         match &self.data {
@@ -174,12 +178,15 @@ impl EnumData {
     pub fn ident(&self) -> &Ident {
         &self.ident
     }
+
     pub fn generics(&self) -> &Generics {
         &self.generics
     }
+
     pub fn variants(&self) -> &[Ident] {
         &self.variants
     }
+
     pub fn fields(&self) -> &[Type] {
         &self.fields
     }
@@ -244,6 +251,7 @@ impl<'a> EnumImpl<'a> {
     pub fn trait_(&mut self) -> &mut Option<Trait> {
         &mut self.trait_
     }
+
     pub fn self_ty(&mut self) -> &mut Type {
         &mut *self.self_ty
     }
@@ -251,6 +259,7 @@ impl<'a> EnumImpl<'a> {
     pub fn push_generic_param(&mut self, param: GenericParam) {
         self.generics.params.push(param);
     }
+
     pub fn push_generic_param_ident(&mut self, ident: Ident) {
         self.push_generic_param(param_ident(Vec::with_capacity(0), ident));
     }
