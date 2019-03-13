@@ -20,20 +20,19 @@ matrix:
     - rust: beta
     - rust: nightly
       script:
+        - cargo check --all --all-features
         - cargo test
-        - cd "${TRAVIS_BUILD_DIR}/examples/example"
-        - cargo run --bin example --all-features
 
     - rust: nightly
-      name: cargo test (minimal versions)
+      name: cargo check (minimal versions)
       script:
         - cargo update -Zminimal-versions
-        - cargo test
+        - cargo check
 
     - rust: nightly
       name: cargo clippy
       script:
-        - if rustup component add clippy-preview;
+        - if rustup component add clippy;
           then
             cargo clippy --all --all-features -- -Dwarnings;
           else
@@ -55,9 +54,8 @@ before_script:
   - set -o errexit
 
 script:
+  - cargo check --all
   - cargo test
-  - cd "${TRAVIS_BUILD_DIR}/examples/example"
-  - cargo run --bin example
 
 notifications:
   email:
