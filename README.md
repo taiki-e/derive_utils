@@ -16,7 +16,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-derive_utils = "0.6"
+derive_utils = "0.7"
 ```
 
 The current version of derive_utils requires Rust 1.31 or later.
@@ -131,8 +131,6 @@ where
 {
 }
 ```
-
-See [auto_enums crate](https://github.com/taiki-e/auto_enums/tree/master/derive/src/derive) for more examples.
 
 ## License
 

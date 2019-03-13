@@ -122,11 +122,13 @@
 //! }
 //! ```
 //!
-//! See [auto_enums crate](https://github.com/taiki-e/auto_enums/tree/master/derive/src/derive) for more examples.
+//! See [auto_enums] crate for more examples.
+//!
+//! [auto_enums]: (https://github.com/taiki-e/auto_enums)
 //!
 
 #![recursion_limit = "256"]
-#![doc(html_root_url = "https://docs.rs/derive_utils/0.6.3")]
+#![doc(html_root_url = "https://docs.rs/derive_utils/0.7.0")]
 #![deny(unsafe_code)]
 #![deny(rust_2018_idioms, unreachable_pub)]
 #![deny(clippy::all, clippy::pedantic)]
