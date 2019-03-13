@@ -2,59 +2,59 @@
 
 # 0.6.3 - 2019-02-05
 
-* Add `EnumData::new` method.
+* Added `EnumData::new` method.
 
-* Update minimum syn version to 0.15.22.
+* Updated minimum syn version to 0.15.22.
 
-* Remove dependency on smallvec.
+* Removed dependency on smallvec.
 
 # 0.6.2 - 2019-01-30
 
-* Add `Error::to_compile_error` method.
+* Added `Error::to_compile_error` method.
 
-* Hide some undocumented items from the public API.
+* Hided some undocumented items from the public API.
 
 # 0.6.1 - 2019-01-26
 
-* Improve support for `self: Pin<&Self>` and `self: Pin<&mut Self>`.
+* Improved support for `self: Pin<&Self>` and `self: Pin<&mut Self>`.
 
-* Update minimum smallvec version to 0.6.8.
+* Updated minimum smallvec version to 0.6.8.
 
 # 0.6.0 - 2019-01-09
 
-* Remove `std` feature and `std_root` function. `derive_utils` can generate accurate code without `std` feature.
+* Removed `std` feature and `std_root` function. `derive_utils` can generate accurate code without `std` feature.
 
-* Remove deprecated push_method_pin* methods. Use `push_method` instead.
+* Removed deprecated push_method_pin* methods. Use `push_method` instead.
 
-* Improve documentation.
+* Improved documentation.
 
 # 0.5.4 - 2019-01-03
 
-* Improve documentation.
+* Improved documentation.
 
 # 0.5.3 - 2018-12-27
 
-* Improve macro implementations. The trailing comma is supported.
+* Improved macro implementations. The trailing comma is supported.
 
-* Improve error messages.
+* Improved error messages.
 
 # 0.5.2 - 2018-12-27
 
-* Hide some undocumented items from the public API.
+* Hided some undocumented items from the public API.
 
 # 0.5.1 - 2018-12-26
 
-* Update to stable Pin API. `Pin::get_mut_unchecked` renamed to `Pin::get_unchecked_mut` in [stabilization](https://github.com/rust-lang/rust/pull/56939).
+* Updated to stable Pin API. `Pin::get_mut_unchecked` renamed to `Pin::get_unchecked_mut` in [stabilization](https://github.com/rust-lang/rust/pull/56939).
 
 # 0.5.0 - 2018-12-23
 
-* Add `quick_derive` macro.
+* Added `quick_derive` macro.
 
-* Remove `derive_trait_with_capacity` macro.
+* Removed `derive_trait_with_capacity` macro.
 
 # 0.4.0 - 2018-12-22
 
-* Support `self: Pin<&Self>` and `self: Pin<&mut Self>`.
+* Added support for `self: Pin<&Self>` and `self: Pin<&mut Self>`.
 
 * Allow using the trait name as trait path.
 
