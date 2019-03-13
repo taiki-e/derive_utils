@@ -4,13 +4,16 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
 use syn::{punctuated::Punctuated, token::Comma, *};
 
-use crate::{common::*,error::Result};
+use crate::utils::*;
 
 macro_rules! parse_quote {
     ($($tt:tt)*) => {
-        $crate::syn::parse2($crate::quote::quote!($($tt)*))
+        syn::parse2(quote::quote!($($tt)*))
     };
 }
+
+// =================================================================================================
+// EnumElements
 
 /// The elements that compose enums.
 pub struct EnumElements<'a> {
@@ -26,13 +29,13 @@ pub trait MaybeEnum {
     fn elements(&self) -> Result<EnumElements<'_>>;
 }
 
-impl<'a, E: ?Sized + MaybeEnum> MaybeEnum for &'a E {
+impl<E: ?Sized + MaybeEnum> MaybeEnum for &E {
     fn elements(&self) -> Result<EnumElements<'_>> {
         (**self).elements()
     }
 }
 
-impl<'a, E: ?Sized + MaybeEnum> MaybeEnum for &'a mut E {
+impl<E: ?Sized + MaybeEnum> MaybeEnum for &mut E {
     fn elements(&self) -> Result<EnumElements<'_>> {
         (**self).elements()
     }
@@ -53,7 +56,7 @@ impl MaybeEnum for Item {
     fn elements(&self) -> Result<EnumElements<'_>> {
         match self {
             Item::Enum(item) => MaybeEnum::elements(item),
-            _ => Err("may only be used on enums")?,
+            _ => err!(self, "may only be used on enums")?,
         }
     }
 }
@@ -62,7 +65,7 @@ impl MaybeEnum for Stmt {
     fn elements(&self) -> Result<EnumElements<'_>> {
         match self {
             Stmt::Item(Item::Enum(item)) => MaybeEnum::elements(item),
-            _ => Err("may only be used on enums")?,
+            _ => err!(self, "may only be used on enums")?,
         }
     }
 }
@@ -76,11 +79,14 @@ impl MaybeEnum for DeriveInput {
                 generics: &self.generics,
                 variants: &data.variants,
             }),
-            Data::Struct(_) => Err("cannot be implemented for structs")?,
-            Data::Union(_) => Err("cannot be implemented for unions")?,
+            Data::Struct(_) => err!(self, "cannot be implemented for structs")?,
+            Data::Union(_) => err!(self, "cannot be implemented for unions")?,
         }
     }
 }
+
+// =================================================================================================
+// EnumData
 
 /// A structure to make trait implementation to enums more efficient.
 pub struct EnumData {
@@ -175,11 +181,11 @@ impl EnumData {
         )
     }
 
-    pub fn ident(&self) -> &Ident {
+    pub const fn ident(&self) -> &Ident {
         &self.ident
     }
 
-    pub fn generics(&self) -> &Generics {
+    pub const fn generics(&self) -> &Generics {
         &self.generics
     }
 
@@ -192,6 +198,47 @@ impl EnumData {
     }
 }
 
+fn parse_variants(
+    punctuated: &Punctuated<Variant, token::Comma>,
+) -> Result<(Vec<Ident>, Vec<Type>)> {
+    if punctuated.len() < 2 {
+        err!(
+            punctuated,
+            "cannot be implemented for enums with less than two variants",
+        )?;
+    }
+
+    let mut variants = Vec::with_capacity(punctuated.len());
+    let mut fields = Vec::with_capacity(punctuated.len());
+    punctuated
+        .iter()
+        .try_for_each(|v| {
+            if v.discriminant.is_some() {
+                err!(v, "an enum with discriminants is not supported")?;
+            }
+
+            match &v.fields {
+                Fields::Unnamed(f) => match f.unnamed.len() {
+                    1 => fields.push(f.unnamed.iter().next().unwrap().ty.clone()),
+                    0 => err!(v.fields, "a variant with zero fields is not supported")?,
+                    _ => err!(v.fields, "a variant with multiple fields is not supported")?,
+                },
+                Fields::Unit => err!(v.fields, "an enum with units variant is not supported")?,
+                Fields::Named(_) => err!(
+                    v.fields,
+                    "an enum with named fields variant is not supported"
+                )?,
+            }
+
+            variants.push(v.ident.clone());
+            Ok(())
+        })
+        .map(|_| (variants, fields))
+}
+
+// =================================================================================================
+// EnumImpl
+
 #[doc(hidden)]
 pub struct Trait {
     /// `AsRef`
@@ -202,7 +249,7 @@ pub struct Trait {
 
 impl Trait {
     #[doc(hidden)]
-    pub fn new(path: Path, ty: Path) -> Self {
+    pub const fn new(path: Path, ty: Path) -> Self {
         Self { path, ty }
     }
 }
@@ -293,64 +340,65 @@ impl<'a> EnumImpl<'a> {
     /// - `self: Pin<&Self>`
     /// - `self: Pin<&mut Self>`
     pub fn push_method(&mut self, item: TraitItemMethod) -> Result<()> {
-        let method = {
-            let mut args = item.sig.decl.inputs.iter();
-            let self_ty = SelfTypes::parse(args.next())?;
-            let args = &args
-                .map(|arg| match arg {
-                    FnArg::Captured(arg) => Ok(&arg.pat),
-                    _ => Err("unsupported arguments type")?,
-                })
-                .collect::<Result<Vec<_>>>()?;
+        let mut args = item.sig.decl.inputs.iter();
+        let self_ty = SelfTypes::parse(args.next())?;
+        let args = &args
+            .map(|arg| match arg {
+                FnArg::Captured(arg) => Ok(&arg.pat),
+                _ => err!(arg, "unsupported arguments type")?,
+            })
+            .collect::<Result<Vec<_>>>()?;
 
-            let method = &item.sig.ident;
-            let ident = &self.data.ident;
-            match self_ty {
-                SelfTypes::None => {
-                    let trait_ = self.trait_path();
-                    let arms = if trait_.is_none() {
-                        self.arms(|v| quote!(#ident::#v(x) => x.#method(#(#args),*)))
-                    } else {
-                        self.arms(|v| quote!(#ident::#v(x) => #trait_::#method(x #(,#args)*)))
-                    };
-                    parse_quote!(match self { #arms })?
-                }
+        let method = &item.sig.ident;
+        let ident = &self.data.ident;
+        let method = match self_ty {
+            SelfTypes::None => {
+                let trait_ = self.trait_path();
+                let arms = if trait_.is_none() {
+                    self.arms(|v| quote!(#ident::#v(x) => x.#method(#(#args),*)))
+                } else {
+                    self.arms(|v| quote!(#ident::#v(x) => #trait_::#method(x #(,#args)*)))
+                };
+                parse_quote!(match self { #arms })?
+            }
 
-                SelfTypes::Pin(self_pin, pin) => {
-                    self.unsafe_code = true;
-                    let trait_ = self.trait_path();
-                    let arms = if trait_.is_none() {
-                        self.arms(
-                            |v| quote!(#ident::#v(x) => #pin::new_unchecked(x).#method(#(#args),*)),
-                        )
-                    } else {
-                        self.arms(|v| quote!(#ident::#v(x) => #trait_::#method(#pin::new_unchecked(x) #(,#args)*)))
-                    };
+            SelfTypes::Pin(self_pin, pin) => {
+                self.unsafe_code = true;
+                let trait_ = self.trait_path();
+                let arms = if trait_.is_none() {
+                    self.arms(
+                        |v| quote!(#ident::#v(x) => #pin::new_unchecked(x).#method(#(#args),*)),
+                    )
+                } else {
+                    self.arms(|v| quote!(#ident::#v(x) => #trait_::#method(#pin::new_unchecked(x) #(,#args)*)))
+                };
 
-                    match self_pin {
-                        SelfPin::Ref => {
-                            if self.unsafety || item.sig.unsafety.is_some() {
-                                parse_quote!(match #pin::get_ref(self) { #arms })?
-                            } else {
-                                parse_quote!(unsafe { match #pin::get_ref(self) { #arms } })?
-                            }
+                match self_pin {
+                    SelfPin::Ref => {
+                        if self.unsafety || item.sig.unsafety.is_some() {
+                            parse_quote!(match #pin::get_ref(self) { #arms })?
+                        } else {
+                            parse_quote!(unsafe { match #pin::get_ref(self) { #arms } })?
                         }
-                        SelfPin::Mut => {
-                            if self.unsafety || item.sig.unsafety.is_some() {
-                                parse_quote!(match #pin::get_unchecked_mut(self) { #arms })?
-                            } else {
-                                parse_quote!(unsafe { match #pin::get_unchecked_mut(self) { #arms } })?
-                            }
+                    }
+                    SelfPin::Mut => {
+                        if self.unsafety || item.sig.unsafety.is_some() {
+                            parse_quote!(match #pin::get_unchecked_mut(self) { #arms })?
+                        } else {
+                            parse_quote!(unsafe { match #pin::get_unchecked_mut(self) { #arms } })?
                         }
                     }
                 }
             }
         };
 
-        self.push_item(ImplItem::Method(method_from_method(
-            item,
-            block(vec![Stmt::Expr(method)]),
-        )));
+        self.push_item(ImplItem::Method(ImplItemMethod {
+            attrs: item.attrs,
+            vis: Visibility::Inherited,
+            defaultness: None,
+            sig: item.sig,
+            block: block(vec![Stmt::Expr(method)]),
+        }));
 
         Ok(())
     }
@@ -365,24 +413,18 @@ impl<'a> EnumImpl<'a> {
         item.items.into_iter().try_for_each(|item| match item {
             TraitItem::Const(_) | TraitItem::Macro(_) | TraitItem::Verbatim(_) => Ok(()),
 
-            TraitItem::Type(TraitItemType {
-                ident, generics, ..
-            }) => {
-                // Generic associated types (GAT) are not supported
-                if generics.params.is_empty() {
-                    {
-                        let trait_ = self.trait_.as_ref().map(|t| &t.ty);
-                        parse_quote!(type #ident = <#fst as #trait_>::#ident;)
-                    }
-                    .map(|ty| self.push_item(ImplItem::Type(ty)))?;
-                }
-                Ok(())
+            // The TraitItemType::generics field (Generic associated types (GAT)) are not supported
+            TraitItem::Type(TraitItemType { ident, .. }) => {
+                let trait_ = self.trait_.as_ref().map(|t| &t.ty);
+                parse_quote!(type #ident = <#fst as #trait_>::#ident;)
+                    .map(|ty| self.push_item(ImplItem::Type(ty)))
             }
 
             TraitItem::Method(method) => self.push_method(method),
         })
     }
 
+    #[allow(clippy::shadow_unrelated)]
     fn from_trait<I>(
         data: &'a EnumData,
         path: Path,
@@ -394,6 +436,7 @@ impl<'a> EnumImpl<'a> {
         I: IntoIterator<Item = Ident>,
         I::IntoIter: ExactSizeIterator,
     {
+        #[allow(single_use_lifetimes)]
         fn generics_params<'a, I>(iter: I) -> impl Iterator<Item = Cow<'a, GenericParam>>
         where
             I: Iterator<Item = &'a GenericParam>,
@@ -416,51 +459,49 @@ impl<'a> EnumImpl<'a> {
             }
         };
 
-        {
-            let fst = data.fields.iter().next();
-            let mut types: Vec<_> = item
-                .items
-                .iter()
-                .filter_map(|item| match item {
-                    TraitItem::Type(ty) => Some((false, Cow::Borrowed(&ty.ident))),
-                    _ => None,
-                })
-                .collect();
+        let fst = data.fields.iter().next();
+        let mut types: Vec<_> = item
+            .items
+            .iter()
+            .filter_map(|item| match item {
+                TraitItem::Type(ty) => Some((false, Cow::Borrowed(&ty.ident))),
+                _ => None,
+            })
+            .collect();
 
-            let supertraits_types = supertraits_types.into_iter();
-            if supertraits_types.len() > 0 {
-                if let Some(TypeParamBound::Trait(_)) = item.supertraits.iter().next() {
-                    types.extend(supertraits_types.map(|ident| (true, Cow::Owned(ident))));
-                }
+        let supertraits_types = supertraits_types.into_iter();
+        if supertraits_types.len() > 0 {
+            if let Some(TypeParamBound::Trait(_)) = item.supertraits.iter().next() {
+                types.extend(supertraits_types.map(|ident| (true, Cow::Owned(ident))));
             }
-
-            let where_clause = &mut generics.make_where_clause().predicates;
-            where_clause.push(parse_quote!(#fst: #trait_)?);
-            data.fields
-                .iter()
-                .skip(1)
-                .map(|variant| {
-                    if types.is_empty() {
-                        parse_quote!(#variant: #trait_)
-                    } else {
-                        let types = types.iter().map(|(supertraits, ident)| {
-                            match item.supertraits.iter().next() {
-                                Some(TypeParamBound::Trait(trait_)) if *supertraits => {
-                                    quote!(#ident = <#fst as #trait_>::#ident)
-                                }
-                                _ => quote!(#ident = <#fst as #trait_>::#ident),
-                            }
-                        });
-                        if item.generics.params.is_empty() {
-                            parse_quote!(#variant: #path<#(#types),*>)
-                        } else {
-                            let generics = generics_params(item.generics.params.iter());
-                            parse_quote!(#variant: #path<#(#generics),*, #(#types),*>)
-                        }
-                    }
-                })
-                .try_for_each(|res| res.map(|f| where_clause.push(f)))?;
         }
+
+        let where_clause = &mut generics.make_where_clause().predicates;
+        where_clause.push(parse_quote!(#fst: #trait_)?);
+        data.fields
+            .iter()
+            .skip(1)
+            .map(|variant| {
+                if types.is_empty() {
+                    parse_quote!(#variant: #trait_)
+                } else {
+                    let types = types.iter().map(|(supertraits, ident)| {
+                        match item.supertraits.iter().next() {
+                            Some(TypeParamBound::Trait(trait_)) if *supertraits => {
+                                quote!(#ident = <#fst as #trait_>::#ident)
+                            }
+                            _ => quote!(#ident = <#fst as #trait_>::#ident),
+                        }
+                    });
+                    if item.generics.params.is_empty() {
+                        parse_quote!(#variant: #path<#(#types),*>)
+                    } else {
+                        let generics = generics_params(item.generics.params.iter());
+                        parse_quote!(#variant: #path<#(#generics),*, #(#types),*>)
+                    }
+                }
+            })
+            .try_for_each(|res| res.map(|f| where_clause.push(f)))?;
 
         if !item.generics.params.is_empty() {
             mem::replace(&mut item.generics.params, Punctuated::new())
@@ -504,7 +545,7 @@ impl<'a> EnumImpl<'a> {
                     pound_token: default(),
                     style: AttrStyle::Outer,
                     bracket_token: default(),
-                    path: path(Some(ident_call_site("allow").into())),
+                    path: path(Some(ident("allow").into())),
                     tts: quote!((unsafe_code)),
                 }]
             } else {
@@ -526,16 +567,6 @@ impl<'a> EnumImpl<'a> {
     }
 }
 
-fn method_from_method(method: TraitItemMethod, block: Block) -> ImplItemMethod {
-    ImplItemMethod {
-        attrs: method.attrs,
-        vis: Visibility::Inherited,
-        defaultness: None,
-        sig: method.sig,
-        block,
-    }
-}
-
 enum SelfTypes {
     /// `&self`, `&mut self`, `self` or `mut self`
     None,
@@ -544,6 +575,8 @@ enum SelfTypes {
 }
 
 enum SelfPin {
+    // `self: Pin<Self>`
+    // Value,
     /// `self: Pin<&Self>`
     Ref,
     /// `self: Pin<&mut Self>`
@@ -576,47 +609,10 @@ impl SelfTypes {
                 "Pin < & mut Self >" => {
                     Ok(SelfTypes::Pin(SelfPin::Mut, remove_last_path_arg(path)))
                 }
-                _ => Err(ERR)?,
+                _ => err!(arg, "{}", ERR)?,
             },
 
-            _ => Err(ERR)?,
+            _ => err!(arg, "{}", ERR)?,
         }
     }
-}
-
-fn parse_variants(
-    punctuated: &Punctuated<Variant, token::Comma>,
-) -> Result<(Vec<Ident>, Vec<Type>)> {
-    #[inline(never)]
-    fn err(msg: &str) -> Result<()> {
-        Err(format!("cannot be implemented for enums with {}", msg).into())
-    }
-
-    if punctuated.len() < 2 {
-        err("less than two variants")?;
-    }
-
-    let mut variants = Vec::with_capacity(punctuated.len());
-    let mut fields = Vec::with_capacity(punctuated.len());
-    punctuated
-        .iter()
-        .try_for_each(|v| {
-            if v.discriminant.is_some() {
-                err("discriminants")?;
-            }
-
-            match &v.fields {
-                Fields::Unnamed(f) => match f.unnamed.len() {
-                    1 => fields.push(f.unnamed.iter().next().unwrap().ty.clone()),
-                    0 => err("zero fields")?,
-                    _ => err("multiple fields")?,
-                },
-                Fields::Unit => err("with units")?,
-                Fields::Named(_) => err("named fields")?,
-            }
-
-            variants.push(v.ident.clone());
-            Ok(())
-        })
-        .map(|_| (variants, fields))
 }

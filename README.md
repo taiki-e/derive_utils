@@ -4,7 +4,7 @@
 [![version](https://img.shields.io/crates/v/derive_utils.svg)](https://crates.io/crates/derive_utils/)
 [![documentation](https://docs.rs/derive_utils/badge.svg)](https://docs.rs/derive_utils/)
 [![license](https://img.shields.io/crates/l/derive_utils.svg)](https://crates.io/crates/derive_utils/)
-[![Rustc Version](https://img.shields.io/badge/rustc-1.30+-lightgray.svg)](https://blog.rust-lang.org/2018/10/25/Rust-1.30.0.html)
+[![Rustc Version](https://img.shields.io/badge/rustc-1.31+-lightgray.svg)](https://blog.rust-lang.org/2018/12/06/Rust-1.31-and-rust-2018.html)
 
 A procedural macro helper for easily writing [custom derives] for enums.
 
@@ -19,18 +19,13 @@ Add this to your `Cargo.toml`:
 derive_utils = "0.6"
 ```
 
-and this to your crate root:
-
-```rust
-extern crate derive_utils;
-```
+The current version of derive_utils requires Rust 1.31 or later.
 
 ## Examples
 
 `quick_derive!` macro make easy to write `proc_macro_derive` like deriving trait to enum so long as all variants are implemented that trait.
 
 ```rust
-extern crate derive_utils;
 extern crate proc_macro;
 
 use derive_utils::quick_derive;
@@ -138,10 +133,6 @@ where
 ```
 
 See [auto_enums crate](https://github.com/taiki-e/auto_enums/tree/master/derive/src/derive) for more examples.
-
-## Rust Version
-
-The current minimum required Rust version is 1.30.
 
 ## License
 
