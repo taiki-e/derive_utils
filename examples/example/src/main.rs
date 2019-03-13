@@ -1,7 +1,6 @@
 #![cfg_attr(feature = "pin", feature(futures_api))]
 
-#[macro_use]
-extern crate example_derive;
+use example_derive::*;
 
 #[derive(Iterator, ExactSizeIterator, FusedIterator)]
 #[cfg_attr(feature = "pin", derive(Future))]

@@ -1,5 +1,11 @@
 # Unreleased
 
+* Transition to Rust 2018. With this change, the minimum required version will go up to Rust 1.31.
+
+* Improved error messages.
+
+* Removed `Error` and `Result` types. The current `derive_utils` uses [`syn::Error`](https://docs.rs/syn/0.15/syn/struct.Error.html) and [`syn::Result`](https://docs.rs/syn/0.15/syn/parse/type.Result.html) types.
+
 # 0.6.3 - 2019-02-05
 
 * Added `EnumData::new` method.

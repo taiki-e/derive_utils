@@ -7,7 +7,6 @@
 //! `quick_derive!` macro make easy to write `proc_macro_derive` like deriving trait to enum so long as all variants are implemented that trait.
 //!
 //! ```rust
-//! extern crate derive_utils;
 //! extern crate proc_macro;
 //!
 //! use derive_utils::quick_derive;
@@ -129,31 +128,28 @@
 #![recursion_limit = "256"]
 #![doc(html_root_url = "https://docs.rs/derive_utils/0.6.3")]
 #![deny(unsafe_code)]
-#![deny(bare_trait_objects, elided_lifetimes_in_paths, unreachable_pub)]
-
-extern crate proc_macro2;
-extern crate quote;
-extern crate syn;
+#![deny(rust_2018_idioms, unreachable_pub)]
+#![deny(clippy::all, clippy::pedantic)]
+// #![warn(single_use_lifetimes)]
+#![warn(clippy::nursery)]
 
 #[macro_use]
 mod macros;
 
-mod common;
-mod error;
+#[macro_use]
+mod utils;
+
 mod parse;
 
-pub use self::error::{Error, Result, *};
 pub use self::parse::*;
 
 // Not public API.
 #[doc(hidden)]
 pub mod __rt {
     #[doc(hidden)]
-    pub use crate::{
-        common::{ident_call_site, path},
-        derive_trait, derive_trait_internal,
-        parse::build_item,
-    };
+    pub use crate::{derive_trait, derive_trait_internal, parse::build_item};
+    #[doc(hidden)]
+    pub use proc_macro2::Span;
     #[doc(hidden)]
     pub use quote::{quote, ToTokens};
     #[doc(hidden)]

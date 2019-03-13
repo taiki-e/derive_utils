@@ -1,6 +1,5 @@
 #![crate_type = "proc-macro"]
 
-extern crate derive_utils;
 extern crate proc_macro;
 
 use derive_utils::quick_derive;

@@ -5,13 +5,11 @@ pub(crate) fn default<T: Default>() -> T {
     T::default()
 }
 
-#[doc(hidden)]
-pub fn ident_call_site(s: &str) -> Ident {
-    Ident::new(s, Span::call_site())
+pub(crate) fn ident<S: AsRef<str>>(s: S) -> Ident {
+    Ident::new(s.as_ref(), Span::call_site())
 }
 
-#[doc(hidden)]
-pub fn path<I: IntoIterator<Item = PathSegment>>(segments: I) -> Path {
+pub(crate) fn path<I: IntoIterator<Item = PathSegment>>(segments: I) -> Path {
     Path {
         leading_colon: None,
         segments: segments.into_iter().collect(),
@@ -34,4 +32,22 @@ pub(crate) fn param_ident(attrs: Vec<Attribute>, ident: Ident) -> GenericParam {
         eq_token: None,
         default: None,
     })
+}
+
+macro_rules! span {
+    ($expr:expr) => {
+        $expr.clone()
+    };
+}
+
+macro_rules! err {
+    ($msg:expr) => {{
+        Err(syn::Error::new_spanned(span!($msg), $msg))
+    }};
+    ($span:expr, $msg:expr) => {
+        Err(syn::Error::new_spanned(span!($span), $msg))
+    };
+    ($span:expr, $($tt:tt)*) => {
+        err!($span, format!($($tt)*))
+    };
 }
