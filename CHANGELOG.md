@@ -4,7 +4,7 @@
 
 * Transition to Rust 2018. With this change, the minimum required version will go up to Rust 1.31.
 
-* Improved error messages.
+* Improved the error messages.
 
 * Removed `Error` and `Result` types. The current `derive_utils` uses [`syn::Error`](https://docs.rs/syn/0.15/syn/struct.Error.html) and [`syn::Result`](https://docs.rs/syn/0.15/syn/parse/type.Result.html) types.
 
@@ -12,9 +12,9 @@
 
 * Added `EnumData::new` method.
 
-* Updated minimum syn version to 0.15.22.
+* Updated minimum `syn` version to 0.15.22.
 
-* Removed dependency on smallvec.
+* Removed dependency on `smallvec`.
 
 # 0.6.2 - 2019-01-30
 
@@ -26,13 +26,13 @@
 
 * Improved support for `self: Pin<&Self>` and `self: Pin<&mut Self>`.
 
-* Updated minimum smallvec version to 0.6.8.
+* Updated minimum `smallvec` version to 0.6.8.
 
 # 0.6.0 - 2019-01-09
 
-* Removed `std` feature and `std_root` function. `derive_utils` can generate accurate code without `std` feature.
+* Removed `"std"` feature and `std_root` function. `derive_utils` can generate accurate code without `"std"` feature.
 
-* Removed deprecated push_method_pin* methods. Use `push_method` instead.
+* Removed deprecated `push_method_pin*` methods. Use `push_method` instead.
 
 * Improved documentation.
 
@@ -44,7 +44,7 @@
 
 * Improved macro implementations. The trailing comma is supported.
 
-* Improved error messages.
+* Improved the error messages.
 
 # 0.5.2 - 2018-12-27
 
