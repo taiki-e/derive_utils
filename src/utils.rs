@@ -10,17 +10,11 @@ pub(crate) fn ident<S: AsRef<str>>(s: S) -> Ident {
 }
 
 pub(crate) fn path<I: IntoIterator<Item = PathSegment>>(segments: I) -> Path {
-    Path {
-        leading_colon: None,
-        segments: segments.into_iter().collect(),
-    }
+    Path { leading_colon: None, segments: segments.into_iter().collect() }
 }
 
 pub(crate) fn block(stmts: Vec<Stmt>) -> Block {
-    Block {
-        brace_token: default(),
-        stmts,
-    }
+    Block { brace_token: default(), stmts }
 }
 
 pub(crate) fn param_ident(attrs: Vec<Attribute>, ident: Ident) -> GenericParam {

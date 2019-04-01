@@ -202,10 +202,7 @@ fn parse_variants(
     punctuated: &Punctuated<Variant, token::Comma>,
 ) -> Result<(Vec<Ident>, Vec<Type>)> {
     if punctuated.len() < 2 {
-        err!(
-            punctuated,
-            "cannot be implemented for enums with less than two variants",
-        )?;
+        err!(punctuated, "cannot be implemented for enums with less than two variants")?;
     }
 
     let mut variants = Vec::with_capacity(punctuated.len());
@@ -224,10 +221,9 @@ fn parse_variants(
                     _ => err!(v.fields, "a variant with multiple fields is not supported")?,
                 },
                 Fields::Unit => err!(v.fields, "an enum with units variant is not supported")?,
-                Fields::Named(_) => err!(
-                    v.fields,
-                    "an enum with named fields variant is not supported"
-                )?,
+                Fields::Named(_) => {
+                    err!(v.fields, "an enum with named fields variant is not supported")?
+                }
             }
 
             variants.push(v.ident.clone());
@@ -551,11 +547,7 @@ impl<'a> EnumImpl<'a> {
             } else {
                 Vec::with_capacity(0)
             },
-            defaultness: if self.defaultness {
-                Some(default())
-            } else {
-                None
-            },
+            defaultness: if self.defaultness { Some(default()) } else { None },
             unsafety: if self.unsafety { Some(default()) } else { None },
             impl_token: default(),
             generics: self.generics,
