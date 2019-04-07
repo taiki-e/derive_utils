@@ -198,9 +198,7 @@ impl EnumData {
     }
 }
 
-fn parse_variants(
-    punctuated: &Punctuated<Variant, token::Comma>,
-) -> Result<(Vec<Ident>, Vec<Type>)> {
+fn parse_variants(punctuated: &Punctuated<Variant, Comma>) -> Result<(Vec<Ident>, Vec<Type>)> {
     if punctuated.len() < 2 {
         err!(punctuated, "cannot be implemented for enums with less than two variants")?;
     }
@@ -276,18 +274,16 @@ impl<'a> EnumImpl<'a> {
     fn new(data: &'a EnumData, items: Vec<ImplItem>) -> Result<Self> {
         let ident = &data.ident;
         let ty_generics = &data.generics;
-        parse_quote!(#ident #ty_generics)
-            .map(|self_ty| Self {
-                data,
-                defaultness: false,
-                unsafety: false,
-                generics: data.generics.clone(),
-                trait_: None,
-                self_ty: Box::new(self_ty),
-                items,
-                unsafe_code: false,
-            })
-            .map_err(Into::into)
+        parse_quote!(#ident #ty_generics).map(|self_ty| Self {
+            data,
+            defaultness: false,
+            unsafety: false,
+            generics: data.generics.clone(),
+            trait_: None,
+            self_ty: Box::new(self_ty),
+            items,
+            unsafe_code: false,
+        })
     }
 
     #[doc(hidden)]
@@ -304,7 +300,7 @@ impl<'a> EnumImpl<'a> {
     }
 
     pub fn push_generic_param_ident(&mut self, ident: Ident) {
-        self.push_generic_param(param_ident(Vec::with_capacity(0), ident));
+        self.push_generic_param(param_ident(Vec::new(), ident));
     }
 
     /// Appends a predicate to the back of `where`-clause.
@@ -336,14 +332,16 @@ impl<'a> EnumImpl<'a> {
     /// - `self: Pin<&Self>`
     /// - `self: Pin<&mut Self>`
     pub fn push_method(&mut self, item: TraitItemMethod) -> Result<()> {
-        let mut args = item.sig.decl.inputs.iter();
-        let self_ty = SelfTypes::parse(args.next())?;
-        let args = &args
-            .map(|arg| match arg {
-                FnArg::Captured(arg) => Ok(&arg.pat),
-                _ => err!(arg, "unsupported arguments type")?,
-            })
-            .collect::<Result<Vec<_>>>()?;
+        let self_ty = SelfTypes::parse(item.sig.decl.inputs.iter().next())?;
+        let mut args = Vec::with_capacity(item.sig.decl.inputs.len());
+        item.sig.decl.inputs.iter().skip(1).try_for_each(|arg| match arg {
+            FnArg::Captured(arg) => {
+                args.push(&arg.pat);
+                Ok(())
+            }
+            _ => err!(arg, "unsupported arguments type"),
+        })?;
+        let args = &args;
 
         let method = &item.sig.ident;
         let ident = &self.data.ident;
@@ -355,7 +353,7 @@ impl<'a> EnumImpl<'a> {
                 } else {
                     self.arms(|v| quote!(#ident::#v(x) => #trait_::#method(x #(,#args)*)))
                 };
-                parse_quote!(match self { #arms })?
+                parse_quote!(match self { #arms })
             }
 
             SelfTypes::Pin(self_pin, pin) => {
@@ -372,31 +370,31 @@ impl<'a> EnumImpl<'a> {
                 match self_pin {
                     SelfPin::Ref => {
                         if self.unsafety || item.sig.unsafety.is_some() {
-                            parse_quote!(match #pin::get_ref(self) { #arms })?
+                            parse_quote!(match #pin::get_ref(self) { #arms })
                         } else {
-                            parse_quote!(unsafe { match #pin::get_ref(self) { #arms } })?
+                            parse_quote!(unsafe { match #pin::get_ref(self) { #arms } })
                         }
                     }
                     SelfPin::Mut => {
                         if self.unsafety || item.sig.unsafety.is_some() {
-                            parse_quote!(match #pin::get_unchecked_mut(self) { #arms })?
+                            parse_quote!(match #pin::get_unchecked_mut(self) { #arms })
                         } else {
-                            parse_quote!(unsafe { match #pin::get_unchecked_mut(self) { #arms } })?
+                            parse_quote!(unsafe { match #pin::get_unchecked_mut(self) { #arms } })
                         }
                     }
                 }
             }
         };
 
-        self.push_item(ImplItem::Method(ImplItemMethod {
-            attrs: item.attrs,
-            vis: Visibility::Inherited,
-            defaultness: None,
-            sig: item.sig,
-            block: block(vec![Stmt::Expr(method)]),
-        }));
-
-        Ok(())
+        method.map(|method| {
+            self.push_item(ImplItem::Method(ImplItemMethod {
+                attrs: item.attrs,
+                vis: Visibility::Inherited,
+                defaultness: None,
+                sig: item.sig,
+                block: block(vec![Stmt::Expr(method)]),
+            }))
+        })
     }
 
     /// Appends items from `ItemTrait` to impl items.
@@ -420,7 +418,6 @@ impl<'a> EnumImpl<'a> {
         })
     }
 
-    #[allow(clippy::shadow_unrelated)]
     fn from_trait<I>(
         data: &'a EnumData,
         path: Path,
@@ -500,34 +497,34 @@ impl<'a> EnumImpl<'a> {
             .try_for_each(|res| res.map(|f| where_clause.push(f)))?;
 
         if !item.generics.params.is_empty() {
-            mem::replace(&mut item.generics.params, Punctuated::new())
-                .into_iter()
-                .for_each(|param| generics.params.push(param));
+            generics
+                .params
+                .extend(mem::replace(&mut item.generics.params, Punctuated::new()).into_iter());
         }
 
         if let Some(old) = item.generics.where_clause.as_mut() {
             if !old.predicates.is_empty() {
-                let where_clause = &mut generics.make_where_clause().predicates;
-                mem::replace(&mut old.predicates, Punctuated::new())
-                    .into_iter()
-                    .for_each(|param| where_clause.push(param));
+                generics
+                    .make_where_clause()
+                    .predicates
+                    .extend(mem::replace(&mut old.predicates, Punctuated::new()).into_iter());
             }
         }
 
         let ident = &data.ident;
         let ty_generics = &data.generics;
-        let mut impls = parse_quote!(#ident #ty_generics).map(|self_ty| Self {
-            data,
-            defaultness: false,
-            unsafety: item.unsafety.is_some(),
-            generics,
-            trait_: Some(Trait::new(path, trait_)),
-            self_ty: Box::new(self_ty),
-            items,
-            unsafe_code: false,
-        })?;
-
-        impls.append_items_from_trait(item).map(|_| impls)
+        parse_quote!(#ident #ty_generics)
+            .map(|self_ty| Self {
+                data,
+                defaultness: false,
+                unsafety: item.unsafety.is_some(),
+                generics,
+                trait_: Some(Trait::new(path, trait_)),
+                self_ty: Box::new(self_ty),
+                items,
+                unsafe_code: false,
+            })
+            .and_then(|mut impls| impls.append_items_from_trait(item).map(|_| impls))
     }
 
     pub fn build(self) -> TokenStream {
@@ -545,7 +542,7 @@ impl<'a> EnumImpl<'a> {
                     tts: quote!((unsafe_code)),
                 }]
             } else {
-                Vec::with_capacity(0)
+                Vec::new()
             },
             defaultness: if self.defaultness { Some(default()) } else { None },
             unsafety: if self.unsafety { Some(default()) } else { None },
@@ -577,8 +574,7 @@ enum SelfPin {
 
 impl SelfTypes {
     fn parse(arg: Option<&FnArg>) -> Result<Self> {
-        fn remove_last_path_arg(path: &Path) -> Path {
-            let mut path = path.clone();
+        fn remove_last_path_arg(mut path: Path) -> Path {
             path.segments.last_mut().unwrap().into_value().arguments = PathArguments::None;
             path
         }
@@ -597,9 +593,11 @@ impl SelfTypes {
                 .into_token_stream()
                 .to_string()
             {
-                "Pin < & Self >" => Ok(SelfTypes::Pin(SelfPin::Ref, remove_last_path_arg(path))),
+                "Pin < & Self >" => {
+                    Ok(SelfTypes::Pin(SelfPin::Ref, remove_last_path_arg(path.clone())))
+                }
                 "Pin < & mut Self >" => {
-                    Ok(SelfTypes::Pin(SelfPin::Mut, remove_last_path_arg(path)))
+                    Ok(SelfTypes::Pin(SelfPin::Mut, remove_last_path_arg(path.clone())))
                 }
                 _ => err!(arg, "{}", ERR)?,
             },
