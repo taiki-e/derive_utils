@@ -1,5 +1,3 @@
-#![cfg_attr(feature = "pin", feature(futures_api))]
-
 use example_derive::*;
 
 #[derive(Iterator, ExactSizeIterator, FusedIterator)]
