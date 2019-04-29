@@ -55,7 +55,7 @@ before_script:
 
 script:
   - cargo check --all
-  - cargo test
+  - cargo test --tests
 
 notifications:
   email:
