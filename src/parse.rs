@@ -332,7 +332,7 @@ impl<'a> EnumImpl<'a> {
     /// - `self: Pin<&Self>`
     /// - `self: Pin<&mut Self>`
     pub fn push_method(&mut self, item: TraitItemMethod) -> Result<()> {
-        let self_ty = SelfTypes::parse(item.sig.decl.inputs.iter().next())?;
+        let self_ty = SelfType::parse(item.sig.decl.inputs.iter().next())?;
         let mut args = Vec::with_capacity(item.sig.decl.inputs.len());
         item.sig.decl.inputs.iter().skip(1).try_for_each(|arg| match arg {
             FnArg::Captured(arg) => {
@@ -346,7 +346,7 @@ impl<'a> EnumImpl<'a> {
         let method = &item.sig.ident;
         let ident = &self.data.ident;
         let method = match self_ty {
-            SelfTypes::None => {
+            SelfType::None => {
                 let trait_ = self.trait_path();
                 let arms = if trait_.is_none() {
                     self.arms(|v| quote!(#ident::#v(x) => x.#method(#(#args),*)))
@@ -356,7 +356,7 @@ impl<'a> EnumImpl<'a> {
                 parse_quote!(match self { #arms })
             }
 
-            SelfTypes::Pin(self_pin, pin) => {
+            SelfType::Pin(mode, pin) => {
                 self.unsafe_code = true;
                 let trait_ = self.trait_path();
                 let arms = if trait_.is_none() {
@@ -367,15 +367,15 @@ impl<'a> EnumImpl<'a> {
                     self.arms(|v| quote!(#ident::#v(x) => #trait_::#method(#pin::new_unchecked(x) #(,#args)*)))
                 };
 
-                match self_pin {
-                    SelfPin::Ref => {
+                match mode {
+                    CaptureMode::Ref { mutability: false } => {
                         if self.unsafety || item.sig.unsafety.is_some() {
                             parse_quote!(match #pin::get_ref(self) { #arms })
                         } else {
                             parse_quote!(unsafe { match #pin::get_ref(self) { #arms } })
                         }
                     }
-                    SelfPin::Mut => {
+                    CaptureMode::Ref { mutability: true } => {
                         if self.unsafety || item.sig.unsafety.is_some() {
                             parse_quote!(match #pin::get_unchecked_mut(self) { #arms })
                         } else {
@@ -556,53 +556,60 @@ impl<'a> EnumImpl<'a> {
     }
 }
 
-enum SelfTypes {
+enum SelfType {
     /// `&self`, `&mut self`, `self` or `mut self`
     None,
     /// `self: Pin<&Self>` or `self: Pin<&mut Self>`
-    Pin(SelfPin, Path),
+    Pin(CaptureMode, Path),
 }
 
-enum SelfPin {
-    // `self: Pin<Self>`
+enum CaptureMode {
+    // `self: Type<Self>`
     // Value,
-    /// `self: Pin<&Self>`
-    Ref,
-    /// `self: Pin<&mut Self>`
-    Mut,
+    /// `self: Type<&Self>` or `self: Type<&mut Self>`
+    Ref { mutability: bool },
 }
 
-impl SelfTypes {
+impl SelfType {
     fn parse(arg: Option<&FnArg>) -> Result<Self> {
-        fn remove_last_path_arg(mut path: Path) -> Path {
+        fn remove_last_path_args(mut path: Path) -> Path {
             path.segments.last_mut().unwrap().into_value().arguments = PathArguments::None;
             path
         }
 
-        const ERR: &str = "unsupported first argument type";
-
         match arg {
-            Some(FnArg::SelfRef(_)) | Some(FnArg::SelfValue(_)) => Ok(SelfTypes::None),
+            Some(FnArg::SelfRef(_)) | Some(FnArg::SelfValue(_)) => return Ok(SelfType::None),
 
             Some(FnArg::Captured(ArgCaptured {
                 pat: Pat::Ident(PatIdent { ident, .. }),
                 ty: Type::Path(TypePath { qself: None, path }),
                 ..
-            })) if ident == "self" => match &*path.segments[path.segments.len() - 1]
-                .clone()
-                .into_token_stream()
-                .to_string()
-            {
-                "Pin < & Self >" => {
-                    Ok(SelfTypes::Pin(SelfPin::Ref, remove_last_path_arg(path.clone())))
+            })) if ident == "self" => {
+                let ty = &path.segments[path.segments.len() - 1];
+                if let PathArguments::AngleBracketed(args) = &ty.arguments {
+                    if ty.ident == "Pin" && args.args.len() == 1 {
+                        match &*args.args[0].clone().into_token_stream().to_string() {
+                            "& Self" => {
+                                return Ok(SelfType::Pin(
+                                    CaptureMode::Ref { mutability: false },
+                                    remove_last_path_args(path.clone()),
+                                ))
+                            }
+                            "& mut Self" => {
+                                return Ok(SelfType::Pin(
+                                    CaptureMode::Ref { mutability: true },
+                                    remove_last_path_args(path.clone()),
+                                ))
+                            }
+                            _ => {}
+                        }
+                    }
                 }
-                "Pin < & mut Self >" => {
-                    Ok(SelfTypes::Pin(SelfPin::Mut, remove_last_path_arg(path.clone())))
-                }
-                _ => err!(arg, "{}", ERR)?,
-            },
+            }
 
-            _ => err!(arg, "{}", ERR)?,
+            _ => {}
         }
+
+        err!(arg, "unsupported first argument type")
     }
 }
