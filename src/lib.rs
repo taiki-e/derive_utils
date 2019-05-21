@@ -128,7 +128,7 @@
 //!
 
 #![recursion_limit = "256"]
-#![doc(html_root_url = "https://docs.rs/derive_utils/0.7.0")]
+#![doc(html_root_url = "https://docs.rs/derive_utils/0.7.1")]
 #![warn(unsafe_code)]
 #![warn(rust_2018_idioms, unreachable_pub)]
 #![warn(clippy::all, clippy::pedantic)]
