@@ -56,7 +56,7 @@ impl MaybeEnum for Item {
     fn elements(&self) -> Result<EnumElements<'_>> {
         match self {
             Item::Enum(item) => MaybeEnum::elements(item),
-            _ => err!(self, "may only be used on enums")?,
+            _ => error!(self, "may only be used on enums"),
         }
     }
 }
@@ -65,7 +65,7 @@ impl MaybeEnum for Stmt {
     fn elements(&self) -> Result<EnumElements<'_>> {
         match self {
             Stmt::Item(Item::Enum(item)) => MaybeEnum::elements(item),
-            _ => err!(self, "may only be used on enums")?,
+            _ => error!(self, "may only be used on enums"),
         }
     }
 }
@@ -79,8 +79,8 @@ impl MaybeEnum for DeriveInput {
                 generics: &self.generics,
                 variants: &data.variants,
             }),
-            Data::Struct(_) => err!(self, "cannot be implemented for structs")?,
-            Data::Union(_) => err!(self, "cannot be implemented for unions")?,
+            Data::Struct(_) => error!(self, "cannot be implemented for structs"),
+            Data::Union(_) => error!(self, "cannot be implemented for unions"),
         }
     }
 }
@@ -200,7 +200,7 @@ impl EnumData {
 
 fn parse_variants(punctuated: &Punctuated<Variant, Comma>) -> Result<(Vec<Ident>, Vec<Type>)> {
     if punctuated.len() < 2 {
-        err!(punctuated, "cannot be implemented for enums with less than two variants")?;
+        error!(punctuated, "cannot be implemented for enums with less than two variants");
     }
 
     let mut variants = Vec::with_capacity(punctuated.len());
@@ -209,18 +209,18 @@ fn parse_variants(punctuated: &Punctuated<Variant, Comma>) -> Result<(Vec<Ident>
         .iter()
         .try_for_each(|v| {
             if v.discriminant.is_some() {
-                err!(v, "an enum with discriminants is not supported")?;
+                error!(v, "an enum with discriminants is not supported");
             }
 
             match &v.fields {
                 Fields::Unnamed(f) => match f.unnamed.len() {
                     1 => fields.push(f.unnamed.iter().next().unwrap().ty.clone()),
-                    0 => err!(v.fields, "a variant with zero fields is not supported")?,
-                    _ => err!(v.fields, "a variant with multiple fields is not supported")?,
+                    0 => error!(v.fields, "a variant with zero fields is not supported"),
+                    _ => error!(v.fields, "a variant with multiple fields is not supported"),
                 },
-                Fields::Unit => err!(v.fields, "an enum with units variant is not supported")?,
+                Fields::Unit => error!(v.fields, "an enum with units variant is not supported"),
                 Fields::Named(_) => {
-                    err!(v.fields, "an enum with named fields variant is not supported")?
+                    error!(v.fields, "an enum with named fields variant is not supported")
                 }
             }
 
@@ -339,7 +339,7 @@ impl<'a> EnumImpl<'a> {
                 args.push(&arg.pat);
                 Ok(())
             }
-            _ => err!(arg, "unsupported arguments type"),
+            _ => error!(arg, "unsupported arguments type"),
         })?;
         let args = &args;
 
@@ -534,13 +534,7 @@ impl<'a> EnumImpl<'a> {
     pub fn build_item(self) -> ItemImpl {
         ItemImpl {
             attrs: if self.unsafe_code {
-                vec![Attribute {
-                    pound_token: default(),
-                    style: AttrStyle::Outer,
-                    bracket_token: default(),
-                    path: path(Some(ident("allow").into())),
-                    tts: quote!((unsafe_code)),
-                }]
+                vec![syn::parse_quote!(#[allow(unsafe_code)])]
             } else {
                 Vec::new()
             },
@@ -577,8 +571,12 @@ impl SelfType {
             path
         }
 
+        fn arg_to_string(arg: Option<&FnArg>) -> String {
+            arg.unwrap().clone().into_token_stream().to_string()
+        }
+
         match arg {
-            Some(FnArg::SelfRef(_)) | Some(FnArg::SelfValue(_)) => return Ok(SelfType::None),
+            Some(FnArg::SelfRef(_)) | Some(FnArg::SelfValue(_)) => Ok(SelfType::None),
 
             Some(FnArg::Captured(ArgCaptured {
                 pat: Pat::Ident(PatIdent { ident, .. }),
@@ -587,29 +585,37 @@ impl SelfType {
             })) if ident == "self" => {
                 let ty = &path.segments[path.segments.len() - 1];
                 if let PathArguments::AngleBracketed(args) = &ty.arguments {
-                    if ty.ident == "Pin" && args.args.len() == 1 {
-                        match &*args.args[0].clone().into_token_stream().to_string() {
-                            "& Self" => {
-                                return Ok(SelfType::Pin(
-                                    CaptureMode::Ref { mutability: false },
-                                    remove_last_path_args(path.clone()),
-                                ))
+                    if args.args.len() == 1 && ty.ident == "Pin" {
+                        if let GenericArgument::Type(Type::Reference(TypeReference {
+                            mutability,
+                            elem,
+                            ..
+                        })) = &args.args[0]
+                        {
+                            match &**elem {
+                                Type::Path(TypePath { path: p, qself: None })
+                                    if p.is_ident("Self") =>
+                                {
+                                    return Ok(SelfType::Pin(
+                                        CaptureMode::Ref { mutability: mutability.is_some() },
+                                        remove_last_path_args(path.clone()),
+                                    ));
+                                }
+                                _ => {}
                             }
-                            "& mut Self" => {
-                                return Ok(SelfType::Pin(
-                                    CaptureMode::Ref { mutability: true },
-                                    remove_last_path_args(path.clone()),
-                                ))
-                            }
-                            _ => {}
                         }
                     }
                 }
+
+                error!(arg, "unsupported first argument type: {}", arg_to_string(arg))
             }
 
-            _ => {}
+            Some(_) => error!(
+                arg,
+                "methods that do not have `self` argument are not supported: {}",
+                arg_to_string(arg)
+            ),
+            None => error!(arg, "methods without arguments are not supported"),
         }
-
-        err!(arg, "unsupported first argument type")
     }
 }

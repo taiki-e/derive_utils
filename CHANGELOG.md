@@ -1,5 +1,9 @@
 # Unreleased
 
+* Improved support for arbitrary self type.
+
+* Improved the error messages.
+
 # 0.7.0 - 2019-03-13
 
 * Transition to Rust 2018. With this change, the minimum required version will go up to Rust 1.31.

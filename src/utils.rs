@@ -1,16 +1,8 @@
-use proc_macro2::{Ident, Span};
-use syn::{punctuated::Punctuated, *};
+use proc_macro2::Ident;
+use syn::{punctuated::Punctuated, Attribute, Block, GenericParam, Stmt, TypeParam};
 
 pub(crate) fn default<T: Default>() -> T {
     T::default()
-}
-
-pub(crate) fn ident<S: AsRef<str>>(s: S) -> Ident {
-    Ident::new(s.as_ref(), Span::call_site())
-}
-
-pub(crate) fn path<I: IntoIterator<Item = PathSegment>>(segments: I) -> Path {
-    Path { leading_colon: None, segments: segments.into_iter().collect() }
 }
 
 pub(crate) fn block(stmts: Vec<Stmt>) -> Block {
@@ -34,14 +26,14 @@ macro_rules! span {
     };
 }
 
-macro_rules! err {
-    ($msg:expr) => {{
-        Err(syn::Error::new_spanned(span!($msg), $msg))
-    }};
+macro_rules! error {
+    ($msg:expr) => {
+        return Err(syn::Error::new_spanned(span!($msg), $msg))
+    };
     ($span:expr, $msg:expr) => {
-        Err(syn::Error::new_spanned(span!($span), $msg))
+        return Err(syn::Error::new_spanned(span!($span), $msg))
     };
     ($span:expr, $($tt:tt)*) => {
-        err!($span, format!($($tt)*))
+        error!($span, format!($($tt)*))
     };
 }
