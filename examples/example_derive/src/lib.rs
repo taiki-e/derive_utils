@@ -1,4 +1,4 @@
-#![crate_type = "proc-macro"]
+#![warn(rust_2018_idioms)]
 
 extern crate proc_macro;
 
