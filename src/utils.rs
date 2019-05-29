@@ -1,12 +1,8 @@
 use proc_macro2::Ident;
-use syn::{punctuated::Punctuated, Attribute, Block, GenericParam, Stmt, TypeParam};
-
-pub(crate) fn default<T: Default>() -> T {
-    T::default()
-}
+use syn::{punctuated::Punctuated, token, Attribute, Block, GenericParam, Stmt, TypeParam};
 
 pub(crate) fn block(stmts: Vec<Stmt>) -> Block {
-    Block { brace_token: default(), stmts }
+    Block { brace_token: token::Brace::default(), stmts }
 }
 
 pub(crate) fn param_ident(attrs: Vec<Attribute>, ident: Ident) -> GenericParam {

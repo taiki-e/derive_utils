@@ -2,7 +2,7 @@ use std::{borrow::Cow, mem};
 
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
-use syn::{punctuated::Punctuated, token::Comma, *};
+use syn::{punctuated::Punctuated, *};
 
 use crate::utils::*;
 
@@ -20,7 +20,7 @@ pub struct EnumElements<'a> {
     pub attrs: &'a [Attribute],
     pub ident: &'a Ident,
     pub generics: &'a Generics,
-    pub variants: &'a Punctuated<Variant, Comma>,
+    pub variants: &'a Punctuated<Variant, token::Comma>,
 }
 
 /// A type that might be enums.
@@ -198,16 +198,14 @@ impl EnumData {
     }
 }
 
-fn parse_variants(punctuated: &Punctuated<Variant, Comma>) -> Result<(Vec<Ident>, Vec<Type>)> {
-    if punctuated.len() < 2 {
-        error!(punctuated, "cannot be implemented for enums with less than two variants");
+fn parse_variants(variants: &Punctuated<Variant, token::Comma>) -> Result<(Vec<Ident>, Vec<Type>)> {
+    if variants.len() < 2 {
+        error!(variants, "cannot be implemented for enums with less than two variants");
     }
 
-    let mut variants = Vec::with_capacity(punctuated.len());
-    let mut fields = Vec::with_capacity(punctuated.len());
-    punctuated
-        .iter()
-        .try_for_each(|v| {
+    variants.iter().try_fold(
+        (Vec::with_capacity(variants.len()), Vec::with_capacity(variants.len())),
+        |(mut variants, mut fields), v| {
             if v.discriminant.is_some() {
                 error!(v, "an enum with discriminants is not supported");
             }
@@ -225,9 +223,9 @@ fn parse_variants(punctuated: &Punctuated<Variant, Comma>) -> Result<(Vec<Ident>
             }
 
             variants.push(v.ident.clone());
-            Ok(())
-        })
-        .map(|_| (variants, fields))
+            Ok((variants, fields))
+        },
+    )
 }
 
 // =================================================================================================
@@ -538,13 +536,13 @@ impl<'a> EnumImpl<'a> {
             } else {
                 Vec::new()
             },
-            defaultness: if self.defaultness { Some(default()) } else { None },
-            unsafety: if self.unsafety { Some(default()) } else { None },
-            impl_token: default(),
+            defaultness: if self.defaultness { Some(token::Default::default()) } else { None },
+            unsafety: if self.unsafety { Some(token::Unsafe::default()) } else { None },
+            impl_token: token::Impl::default(),
             generics: self.generics,
-            trait_: self.trait_.map(|Trait { ty, .. }| (None, ty, default())),
+            trait_: self.trait_.map(|Trait { ty, .. }| (None, ty, token::For::default())),
             self_ty: self.self_ty,
-            brace_token: default(),
+            brace_token: token::Brace::default(),
             items: self.items,
         }
     }
