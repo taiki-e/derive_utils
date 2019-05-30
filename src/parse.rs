@@ -206,8 +206,8 @@ fn parse_variants(variants: &Punctuated<Variant, token::Comma>) -> Result<(Vec<I
     variants.iter().try_fold(
         (Vec::with_capacity(variants.len()), Vec::with_capacity(variants.len())),
         |(mut variants, mut fields), v| {
-            if v.discriminant.is_some() {
-                error!(v, "an enum with discriminants is not supported");
+            if let Some((_, e)) = &v.discriminant {
+                error!(e, "an enum with discriminants is not supported")
             }
 
             match &v.fields {
@@ -216,10 +216,8 @@ fn parse_variants(variants: &Punctuated<Variant, token::Comma>) -> Result<(Vec<I
                     0 => error!(v.fields, "a variant with zero fields is not supported"),
                     _ => error!(v.fields, "a variant with multiple fields is not supported"),
                 },
-                Fields::Unit => error!(v.fields, "an enum with units variant is not supported"),
-                Fields::Named(_) => {
-                    error!(v.fields, "an enum with named fields variant is not supported")
-                }
+                Fields::Unit => error!(v, "an enum with units variant is not supported"),
+                Fields::Named(_) => error!(v, "an enum with named fields variant is not supported"),
             }
 
             variants.push(v.ident.clone());

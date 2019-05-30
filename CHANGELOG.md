@@ -1,16 +1,18 @@
 # Unreleased
 
+* Improved error messages.
+
 # 0.7.1 - 2019-05-21
 
 * Improved support for arbitrary self type.
 
-* Improved the error messages.
+* Improved error messages.
 
 # 0.7.0 - 2019-03-13
 
 * Transition to Rust 2018. With this change, the minimum required version will go up to Rust 1.31.
 
-* Improved the error messages.
+* Improved error messages.
 
 * Removed `Error` and `Result` types. The current `derive_utils` uses [`syn::Error`](https://docs.rs/syn/0.15/syn/struct.Error.html) and [`syn::Result`](https://docs.rs/syn/0.15/syn/parse/type.Result.html) types.
 
@@ -50,7 +52,7 @@
 
 * Improved macro implementations. The trailing comma is supported.
 
-* Improved the error messages.
+* Improved error messages.
 
 # 0.5.2 - 2018-12-27
 
