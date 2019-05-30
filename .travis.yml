@@ -32,12 +32,8 @@ matrix:
     - rust: nightly
       name: cargo clippy
       script:
-        - if rustup component add clippy;
-          then
-            cargo clippy --all --all-features;
-          else
-            echo 'Skipping clippy';
-          fi
+        - rustup component add clippy || travis_terminate 0
+        - cargo clippy --all --all-features
 
     - rust: stable
       name: cargo fmt
