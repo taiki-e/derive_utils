@@ -2,8 +2,7 @@
 
 use example_derive::*;
 
-#[derive(Iterator, ExactSizeIterator, FusedIterator)]
-#[cfg_attr(feature = "pin", derive(Future))]
+#[derive(Iterator, ExactSizeIterator, FusedIterator, Future)]
 enum Enum<A, B> {
     A(A),
     B(B),

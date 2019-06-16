@@ -56,6 +56,24 @@
 //!         trait FusedIterator: Iterator {},
 //!     }
 //! }
+//!
+//! # #[cfg(all(feature = "std", not(feature = "std")))]
+//! #[proc_macro_derive(Future)]
+//! # pub fn derive_future(input: TokenStream) -> TokenStream { input }
+//! pub fn derive_future(input: TokenStream) -> TokenStream {
+//!     quick_derive! {
+//!         input,
+//!         // path
+//!         (std::future::Future),
+//!         // trait
+//!         trait Future {
+//!             type Output;
+//!             fn poll(self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>)
+//!                 -> std::task::Poll<Self::Output>;
+//!         }
+//!     }
+//! }
+//!
 //! # fn main() {}
 //! ```
 //!
@@ -65,9 +83,9 @@
 //!
 //! ```rust
 //! # #[cfg(all(feature = "std", not(feature = "std")))]
-//! #[derive(Iterator, ExactSizeIterator, FusedIterator)]
-//! # struct _Iter<A>(A);
-//! enum Iter<A, B> {
+//! #[derive(Iterator, ExactSizeIterator, FusedIterator, Future)]
+//! # struct _Enum<A>(A);
+//! enum Enum<A, B> {
 //!     A(A),
 //!     B(B),
 //! }
@@ -76,12 +94,12 @@
 //! Code like this will be generated:
 //!
 //! ```rust
-//! enum Iter<A, B> {
+//! enum Enum<A, B> {
 //!     A(A),
 //!     B(B),
 //! }
 //!
-//! impl<A, B> Iterator for Iter<A, B>
+//! impl<A, B> Iterator for Enum<A, B>
 //! where
 //!     A: Iterator,
 //!     B: Iterator<Item = <A as Iterator>::Item>,
@@ -89,36 +107,56 @@
 //!     type Item = <A as Iterator>::Item;
 //!     fn next(&mut self) -> Option<Self::Item> {
 //!         match self {
-//!             Iter::A(x) => x.next(),
-//!             Iter::B(x) => x.next(),
+//!             Enum::A(x) => x.next(),
+//!             Enum::B(x) => x.next(),
 //!         }
 //!     }
 //!     fn size_hint(&self) -> (usize, Option<usize>) {
 //!         match self {
-//!             Iter::A(x) => x.size_hint(),
-//!             Iter::B(x) => x.size_hint(),
+//!             Enum::A(x) => x.size_hint(),
+//!             Enum::B(x) => x.size_hint(),
 //!         }
 //!     }
 //! }
 //!
-//! impl<A, B> ExactSizeIterator for Iter<A, B>
+//! impl<A, B> ExactSizeIterator for Enum<A, B>
 //! where
 //!     A: ExactSizeIterator,
 //!     B: ExactSizeIterator<Item = <A as Iterator>::Item>,
 //! {
 //!     fn len(&self) -> usize {
 //!         match self {
-//!             Iter::A(x) => x.len(),
-//!             Iter::B(x) => x.len(),
+//!             Enum::A(x) => x.len(),
+//!             Enum::B(x) => x.len(),
 //!         }
 //!     }
 //! }
 //!
-//! impl<A, B> std::iter::FusedIterator for Iter<A, B>
+//! impl<A, B> std::iter::FusedIterator for Enum<A, B>
 //! where
 //!     A: std::iter::FusedIterator,
 //!     B: std::iter::FusedIterator<Item = <A as Iterator>::Item>,
 //! {
+//! }
+//!
+//! impl<A, B> std::future::Future for Enum<A, B>
+//! where
+//!     A: std::future::Future,
+//!     B: std::future::Future<Output = <A as std::future::Future>::Output>,
+//! {
+//!     type Output = <A as std::future::Future>::Output;
+//!
+//!     fn poll(
+//!         self: std::pin::Pin<&mut Self>,
+//!         cx: &mut std::task::Context<'_>,
+//!     ) -> std::task::Poll<Self::Output> {
+//!         unsafe {
+//!             match self.get_unchecked_mut() {
+//!                 Enum::A(x) => std::pin::Pin::new_unchecked(x).poll(cx),
+//!                 Enum::B(x) => std::pin::Pin::new_unchecked(x).poll(cx),
+//!             }
+//!         }
+//!     }
 //! }
 //! ```
 //!
@@ -129,10 +167,12 @@
 
 #![recursion_limit = "256"]
 #![doc(html_root_url = "https://docs.rs/derive_utils/0.7.2")]
+#![doc(test(attr(deny(warnings), allow(dead_code, unused_assignments, unused_variables))))]
 #![warn(unsafe_code)]
 #![warn(rust_2018_idioms, unreachable_pub)]
+// It cannot be included in the published code because these lints have false positives in the minimum required version.
+#![cfg_attr(test, warn(single_use_lifetimes))]
 #![warn(clippy::all, clippy::pedantic)]
-// #![warn(single_use_lifetimes)]
 #![warn(clippy::nursery)]
 
 #[macro_use]

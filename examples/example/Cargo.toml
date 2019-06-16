@@ -7,6 +7,3 @@ publish = false
 
 [dependencies]
 example_derive = { path = "../example_derive" }
-
-[features]
-pin = []
