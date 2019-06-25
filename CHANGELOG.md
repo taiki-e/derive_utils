@@ -1,5 +1,7 @@
 # Unreleased
 
+# 0.8.0 - 2019-06-26
+
 * Added `quote::ToTokens` bound to `MaybeEnum`.
 
 * Removed `EnumData::{from_item, from_derive}` in favor of `EnumData::new`

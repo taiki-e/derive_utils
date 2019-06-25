@@ -16,7 +16,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-derive_utils = "0.7"
+derive_utils = "0.8"
 ```
 
 The current derive_utils requires Rust 1.31 or later.
