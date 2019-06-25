@@ -76,14 +76,14 @@ macro_rules! quick_derive {
     };
     ($input:expr, ($($path:tt)*), $trait:item $(,)*) => {
         quick_derive!(@inner $input, |ast| {
-            $crate::EnumData::from_derive(&ast).and_then(|data| {
+            $crate::EnumData::new::<$crate::__rt::DeriveInput>(&ast).and_then(|data| {
                 $crate::__rt::derive_trait!(data, ($($path)*), $trait)
             })
         })
     };
     ($input:expr, $super:ident, ($($path:tt)*), $trait:item $(,)*) => {
         quick_derive!(@inner $input, |ast| {
-            $crate::EnumData::from_derive(&ast).and_then(|data| {
+            $crate::EnumData::new::<$crate::__rt::DeriveInput>(&ast).and_then(|data| {
                 $crate::__rt::derive_trait!(
                     data,
                     Some($crate::__rt::Ident::new(stringify!($super), $crate::__rt::Span::call_site())),
@@ -95,7 +95,7 @@ macro_rules! quick_derive {
     };
     ($input:expr, $super:ident, $trait:item $(,)*) => {
         quick_derive!(@inner $input, |ast| {
-            $crate::EnumData::from_derive(&ast).and_then(|data| {
+            $crate::EnumData::new::<$crate::__rt::DeriveInput>(&ast).and_then(|data| {
                 $crate::__rt::derive_trait!(
                     data,
                     Some($crate::__rt::Ident::new(stringify!($super), $crate::__rt::Span::call_site())),
@@ -107,7 +107,7 @@ macro_rules! quick_derive {
     };
     ($input:expr, $trait:item $(,)*) => {
         quick_derive!(@inner $input, |ast| {
-            $crate::EnumData::from_derive(&ast).and_then(|data| {
+            $crate::EnumData::new::<$crate::__rt::DeriveInput>(&ast).and_then(|data| {
                 $crate::__rt::derive_trait!(data, _, $trait)
             })
         })
