@@ -24,7 +24,7 @@ pub struct EnumElements<'a> {
 }
 
 /// A type that might be enums.
-pub trait MaybeEnum {
+pub trait MaybeEnum: ToTokens {
     /// Get the elements that compose enums.
     fn elements(&self) -> Result<EnumElements<'_>>;
 }
@@ -100,6 +100,10 @@ impl EnumData {
     /// Constructs a new `EnumData`.
     pub fn new<E: MaybeEnum>(maybe_enum: &E) -> Result<Self> {
         let elements = MaybeEnum::elements(maybe_enum)?;
+        if elements.variants.len() < 2 {
+            error!(maybe_enum, "cannot be implemented for enums with less than two variants");
+        }
+
         parse_variants(elements.variants).map(|(variants, fields)| Self {
             ident: elements.ident.clone(),
             generics: elements.generics.clone(),
@@ -199,10 +203,6 @@ impl EnumData {
 }
 
 fn parse_variants(variants: &Punctuated<Variant, token::Comma>) -> Result<(Vec<Ident>, Vec<Type>)> {
-    if variants.len() < 2 {
-        error!(variants, "cannot be implemented for enums with less than two variants");
-    }
-
     variants.iter().try_fold(
         (Vec::with_capacity(variants.len()), Vec::with_capacity(variants.len())),
         |(mut variants, mut fields), v| {
