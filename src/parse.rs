@@ -112,16 +112,6 @@ impl EnumData {
         })
     }
 
-    /// Constructs a new `EnumData` from `&ItemEnum`.
-    pub fn from_item(item: &ItemEnum) -> Result<Self> {
-        Self::new(item)
-    }
-
-    /// Constructs a new `EnumData` from `&DeriveInput`.
-    pub fn from_derive(ast: &DeriveInput) -> Result<Self> {
-        Self::new(ast)
-    }
-
     /// Constructs a new `EnumImpl`.
     pub fn make_impl<'a>(&'a self) -> Result<EnumImpl<'a>> {
         EnumImpl::new(self, Vec::new())

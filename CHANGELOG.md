@@ -2,6 +2,8 @@
 
 * Added `quote::ToTokens` bound to `MaybeEnum`.
 
+* Removed `EnumData::{from_item, from_derive}` in favor of `EnumData::new`
+
 * Improved error messages.
 
 # 0.7.2 - 2019-05-30
