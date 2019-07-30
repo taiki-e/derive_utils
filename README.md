@@ -1,10 +1,21 @@
 # derive_utils
 
-[![Build Status](https://travis-ci.org/taiki-e/derive_utils.svg?branch=master)](https://travis-ci.org/taiki-e/derive_utils)
-[![version](https://img.shields.io/crates/v/derive_utils.svg)](https://crates.io/crates/derive_utils/)
-[![documentation](https://docs.rs/derive_utils/badge.svg)](https://docs.rs/derive_utils/)
-[![license](https://img.shields.io/crates/l/derive_utils.svg)](https://crates.io/crates/derive_utils/)
-[![Rustc Version](https://img.shields.io/badge/rustc-1.31+-lightgray.svg)](https://blog.rust-lang.org/2018/12/06/Rust-1.31-and-rust-2018.html)
+[![Build Status][azure-badge]][azure-url]
+[![Crates.io][crates-version-badge]][crates-url]
+[![Docs.rs][docs-badge]][docs-url]
+[![License][crates-license-badge]][crates-url]
+[![Minimum supported Rust version][rustc-badge]][rustc-url]
+
+[azure-badge]: https://dev.azure.com/taiki-e/taiki-e/_apis/build/status/taiki-e.derive_utils?branchName=master
+[azure-url]: https://dev.azure.com/taiki-e/taiki-e/_build/latest?definitionId=2&branchName=master
+[crates-version-badge]: https://img.shields.io/crates/v/derive_utils.svg
+[crates-license-badge]: https://img.shields.io/crates/l/derive_utils.svg
+[crates-badge]: https://img.shields.io/crates/v/derive_utils.svg
+[crates-url]: https://crates.io/crates/derive_utils/
+[docs-badge]: https://docs.rs/derive_utils/badge.svg
+[docs-url]: https://docs.rs/derive_utils/
+[rustc-badge]: https://img.shields.io/badge/rustc-1.31+-lightgray.svg
+[rustc-url]: https://blog.rust-lang.org/2018/12/06/Rust-1.31-and-rust-2018.html
 
 A procedural macro helper for easily writing [custom derives] for enums.
 

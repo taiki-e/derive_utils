@@ -11,16 +11,9 @@ documentation = "https://docs.rs/derive_utils/"
 readme = "README.md"
 keywords = ["enum", "macros", "derive"]
 categories = ["rust-patterns", "development-tools::procedural-macro-helpers"]
-exclude = ["/.travis.yml", "/bors.toml"]
 
 [workspace]
-members = [
-    "examples/example",
-    "examples/example_derive",
-]
-
-[badges]
-travis-ci = { repository = "taiki-e/derive_utils" }
+members = ["examples/example", "examples/example_derive"]
 
 [dependencies]
 proc-macro2 = "0.4.13"
