@@ -173,7 +173,6 @@
 // It cannot be included in the published code because these lints have false positives in the minimum required version.
 #![cfg_attr(test, warn(single_use_lifetimes))]
 #![warn(clippy::all, clippy::pedantic)]
-#![warn(clippy::nursery)]
 
 #[macro_use]
 mod macros;
