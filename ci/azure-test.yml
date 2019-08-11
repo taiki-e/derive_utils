@@ -22,12 +22,14 @@ jobs:
       parameters:
         rust: ${{ parameters.rust }}
 
-    - script: cargo ${{ parameters.cmd }}
+    - script: |
+        cargo ${{ parameters.cmd }}
       displayName: cargo ${{ parameters.cmd }}
 
     - ${{ if eq(parameters.rust, 'nightly') }}:
-      - script: cargo check --all
-        displayName: cargo check --all
+      - script: |
+          cargo check --all
+        displayName: cargo check
 
       - script: |
           cargo update -Zminimal-versions
