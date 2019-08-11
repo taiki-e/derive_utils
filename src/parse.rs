@@ -113,12 +113,12 @@ impl EnumData {
     }
 
     /// Constructs a new `EnumImpl`.
-    pub fn make_impl<'a>(&'a self) -> Result<EnumImpl<'a>> {
+    pub fn make_impl(&self) -> Result<EnumImpl<'_>> {
         EnumImpl::new(self, Vec::new())
     }
 
     /// Constructs a new `EnumImpl` with the specified capacity..
-    pub fn impl_with_capacity<'a>(&'a self, capacity: usize) -> Result<EnumImpl<'a>> {
+    pub fn impl_with_capacity(&self, capacity: usize) -> Result<EnumImpl<'_>> {
         EnumImpl::new(self, Vec::with_capacity(capacity))
     }
 
@@ -137,12 +137,12 @@ impl EnumData {
     /// - `TraitItem::Const`
     /// - `TraitItem::Macro`
     /// - `TraitItem::Verbatim`
-    pub fn make_impl_trait<'a, I>(
-        &'a self,
+    pub fn make_impl_trait<I>(
+        &self,
         trait_path: Path,
         supertraits_types: I,
         item: ItemTrait,
-    ) -> Result<EnumImpl<'a>>
+    ) -> Result<EnumImpl<'_>>
     where
         I: IntoIterator<Item = Ident>,
         I::IntoIter: ExactSizeIterator,
@@ -155,13 +155,13 @@ impl EnumData {
     /// See [`EnumData::make_impl_trait`] for supported item types.
     ///
     /// [`EnumData::make_impl_trait`]: ./struct.EnumData.html#method.make_impl_trait
-    pub fn impl_trait_with_capacity<'a, I>(
-        &'a self,
+    pub fn impl_trait_with_capacity<I>(
+        &self,
         capacity: usize,
         trait_path: Path,
         supertraits_types: I,
         item: ItemTrait,
-    ) -> Result<EnumImpl<'a>>
+    ) -> Result<EnumImpl<'_>>
     where
         I: IntoIterator<Item = Ident>,
         I::IntoIter: ExactSizeIterator,
