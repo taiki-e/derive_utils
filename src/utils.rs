@@ -16,18 +16,9 @@ pub(crate) fn param_ident(attrs: Vec<Attribute>, ident: Ident) -> GenericParam {
     })
 }
 
-macro_rules! span {
-    ($expr:expr) => {
-        $expr.clone()
-    };
-}
-
 macro_rules! error {
-    ($msg:expr) => {
-        return Err(syn::Error::new_spanned(span!($msg), $msg))
-    };
     ($span:expr, $msg:expr) => {
-        return Err(syn::Error::new_spanned(span!($span), $msg))
+        return Err(syn::Error::new_spanned(&$span, $msg))
     };
     ($span:expr, $($tt:tt)*) => {
         error!($span, format!($($tt)*))
