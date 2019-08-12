@@ -196,18 +196,22 @@ impl EnumData {
         )
     }
 
+    #[doc(hidden)]
     pub fn ident(&self) -> &Ident {
         &self.ident
     }
 
+    #[doc(hidden)]
     pub fn generics(&self) -> &Generics {
         &self.generics
     }
 
+    #[doc(hidden)]
     pub fn variants(&self) -> &[Ident] {
         &self.variants
     }
 
+    #[doc(hidden)]
     pub fn fields(&self) -> &[Type] {
         &self.fields
     }
@@ -298,6 +302,7 @@ impl<'a> EnumImpl<'a> {
         &mut self.trait_
     }
 
+    #[doc(hidden)]
     pub fn self_ty(&mut self) -> &mut Type {
         &mut *self.self_ty
     }

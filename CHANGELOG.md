@@ -4,6 +4,8 @@
 
 * Removed `EnumImpl::append_items_from_trait` in favor of `EnumImpl::append_items`.
 
+* Hided some undocumented items from the public API.
+
 # 0.8.0 - 2019-06-26
 
 * Added `quote::ToTokens` bound to `MaybeEnum`.
