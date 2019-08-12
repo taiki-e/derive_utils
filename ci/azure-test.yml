@@ -33,6 +33,5 @@ jobs:
 
       - script: |
           cargo update -Zminimal-versions
-          cat Cargo.lock
           cargo check
         displayName: cargo check -Zminimal-versions
