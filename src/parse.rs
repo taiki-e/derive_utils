@@ -175,11 +175,11 @@ impl EnumData {
         )
     }
 
-    pub const fn ident(&self) -> &Ident {
+    pub fn ident(&self) -> &Ident {
         &self.ident
     }
 
-    pub const fn generics(&self) -> &Generics {
+    pub fn generics(&self) -> &Generics {
         &self.generics
     }
 
@@ -229,7 +229,7 @@ pub struct Trait {
 
 impl Trait {
     #[doc(hidden)]
-    pub const fn new(path: Path, ty: Path) -> Self {
+    pub fn new(path: Path, ty: Path) -> Self {
         Self { path, ty }
     }
 }
