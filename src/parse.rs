@@ -38,8 +38,13 @@ fn param_ident(attrs: Vec<Attribute>, ident: Ident) -> GenericParam {
 
 /// The elements that compose enums.
 pub struct EnumElements<'a> {
+    /// Attributes tagged on the whole enum.
     pub attrs: &'a [Attribute],
+    /// Visibility of the enum.
+    pub vis: &'a Visibility,
+    /// Name of the enum.
     pub ident: &'a Ident,
+    /// Generics required to complete the definition.
     pub generics: &'a Generics,
     pub variants: &'a Punctuated<Variant, token::Comma>,
 }
@@ -66,6 +71,7 @@ impl MaybeEnum for ItemEnum {
     fn elements(&self) -> Result<EnumElements<'_>> {
         Ok(EnumElements {
             attrs: &self.attrs,
+            vis: &self.vis,
             ident: &self.ident,
             generics: &self.generics,
             variants: &self.variants,
@@ -96,6 +102,7 @@ impl MaybeEnum for DeriveInput {
         match &self.data {
             Data::Enum(data) => Ok(EnumElements {
                 attrs: &self.attrs,
+                vis: &self.vis,
                 ident: &self.ident,
                 generics: &self.generics,
                 variants: &data.variants,
@@ -111,6 +118,7 @@ impl MaybeEnum for DeriveInput {
 
 /// A structure to make trait implementation to enums more efficient.
 pub struct EnumData {
+    vis: Visibility,
     ident: Ident,
     generics: Generics,
     variants: Vec<Ident>,
@@ -126,6 +134,7 @@ impl EnumData {
         }
 
         parse_variants(elements.variants).map(|(variants, fields)| Self {
+            vis: elements.vis.clone(),
             ident: elements.ident.clone(),
             generics: elements.generics.clone(),
             variants,
@@ -194,6 +203,11 @@ impl EnumData {
             item,
             supertraits_types,
         )
+    }
+
+    #[doc(hidden)]
+    pub fn vis(&self) -> &Visibility {
+        &self.vis
     }
 
     #[doc(hidden)]
