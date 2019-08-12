@@ -383,14 +383,17 @@ impl<'a> EnumImpl<'a> {
         })
     }
 
-    /// Appends items from `ItemTrait` to impl items.
+    /// Appends items from an iterator of `TraitItem` to impl items.
     ///
     /// See [`EnumData::make_impl_trait`] for supported item types.
     ///
     /// [`EnumData::make_impl_trait`]: ./struct.EnumData.html#method.make_impl_trait
-    pub fn append_items_from_trait(&mut self, item: ItemTrait) -> Result<()> {
+    pub fn append_items<I>(&mut self, items: I) -> Result<()>
+    where
+        I: IntoIterator<Item = TraitItem>,
+    {
         let fst = self.data.fields.iter().next();
-        item.items.into_iter().try_for_each(|item| match item {
+        items.into_iter().try_for_each(|item| match item {
             TraitItem::Const(_) | TraitItem::Macro(_) | TraitItem::Verbatim(_) => Ok(()),
 
             // The TraitItemType::generics field (Generic associated types (GAT)) are not supported
@@ -483,9 +486,7 @@ impl<'a> EnumImpl<'a> {
             .try_for_each(|res| res.map(|f| where_clause.push(f)))?;
 
         if !item.generics.params.is_empty() {
-            generics
-                .params
-                .extend(mem::replace(&mut item.generics.params, Punctuated::new()).into_iter());
+            generics.params.extend(mem::replace(&mut item.generics.params, Punctuated::new()));
         }
 
         if let Some(old) = item.generics.where_clause.as_mut() {
@@ -493,7 +494,7 @@ impl<'a> EnumImpl<'a> {
                 generics
                     .make_where_clause()
                     .predicates
-                    .extend(mem::replace(&mut old.predicates, Punctuated::new()).into_iter());
+                    .extend(mem::replace(&mut old.predicates, Punctuated::new()));
             }
         }
 
@@ -510,7 +511,7 @@ impl<'a> EnumImpl<'a> {
                 items,
                 unsafe_code: false,
             })
-            .and_then(|mut impls| impls.append_items_from_trait(item).map(|_| impls))
+            .and_then(|mut impls| impls.append_items(item.items).map(|_| impls))
     }
 
     pub fn build(self) -> TokenStream {
