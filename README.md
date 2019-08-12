@@ -17,9 +17,9 @@
 [rustc-badge]: https://img.shields.io/badge/rustc-1.31+-lightgray.svg
 [rustc-url]: https://blog.rust-lang.org/2018/12/06/Rust-1.31-and-rust-2018.html
 
-A procedural macro helper for easily writing [custom derives] for enums.
+A procedural macro helper for easily writing [derives macros] for enums.
 
-[custom derives]: https://doc.rust-lang.org/reference/procedural-macros.html#derive-mode-macros
+[derives macros]: https://doc.rust-lang.org/reference/procedural-macros.html#derive-macros
 
 ## Usage
 

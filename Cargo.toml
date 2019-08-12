@@ -10,7 +10,7 @@ readme = "README.md"
 keywords = ["enum", "macros", "derive"]
 categories = ["rust-patterns", "development-tools::procedural-macro-helpers"]
 description = """
-A procedural macro helper for easily writing custom derives for enums.
+A procedural macro helper for easily writing derive macros for enums.
 """
 
 [workspace]

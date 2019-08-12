@@ -1,6 +1,6 @@
-//! A procedural macro helper for easily writing [custom derives] for enums.
+//! A procedural macro helper for easily writing [derive macros] for enums.
 //!
-//! [custom derives]: https://doc.rust-lang.org/reference/procedural-macros.html#derive-mode-macros
+//! [derive macros]: https://doc.rust-lang.org/reference/procedural-macros.html#derive-mode-macros
 //!
 //! ## Examples
 //!
