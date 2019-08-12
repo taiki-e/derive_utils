@@ -425,17 +425,14 @@ impl<'a> EnumImpl<'a> {
         })
     }
 
-    /// Appends items from an iterator of `TraitItem` to impl items.
+    /// Appends items from `ItemTrait` to impl items.
     ///
     /// See [`EnumData::make_impl_trait`] for supported item types.
     ///
     /// [`EnumData::make_impl_trait`]: ./struct.EnumData.html#method.make_impl_trait
-    pub fn append_items<I>(&mut self, items: I) -> Result<()>
-    where
-        I: IntoIterator<Item = TraitItem>,
-    {
+    pub fn append_items_from_trait(&mut self, item: ItemTrait) -> Result<()> {
         let fst = self.data.fields.iter().next();
-        items.into_iter().try_for_each(|item| match item {
+        item.items.into_iter().try_for_each(|item| match item {
             TraitItem::Const(_) | TraitItem::Macro(_) | TraitItem::Verbatim(_) => Ok(()),
 
             // The TraitItemType::generics field (Generic associated types (GAT)) are not supported
@@ -553,7 +550,7 @@ impl<'a> EnumImpl<'a> {
                 items,
                 unsafe_code: false,
             })
-            .and_then(|mut impls| impls.append_items(item.items).map(|_| impls))
+            .and_then(|mut impls| impls.append_items_from_trait(item).map(|_| impls))
     }
 
     pub fn build(self) -> TokenStream {

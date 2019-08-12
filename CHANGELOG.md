@@ -1,9 +1,5 @@
 # Unreleased
 
-* Added `EnumImpl::append_items`.
-
-* Removed `EnumImpl::append_items_from_trait` in favor of `EnumImpl::append_items`.
-
 * Banned manual implementation of `MaybeEnum` for forward compatibility.
 
 * Addef `vis: Visibility` field to `EnumElements`.
