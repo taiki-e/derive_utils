@@ -4,12 +4,33 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
 use syn::{punctuated::Punctuated, *};
 
-use crate::utils::*;
+// =================================================================================================
+// Utilities
 
 macro_rules! parse_quote {
     ($($tt:tt)*) => {
         syn::parse2(quote::quote!($($tt)*))
     };
+}
+
+macro_rules! error {
+    ($span:expr, $msg:expr) => {
+        return Err(syn::Error::new_spanned(&$span, $msg))
+    };
+    ($span:expr, $($tt:tt)*) => {
+        error!($span, format!($($tt)*))
+    };
+}
+
+fn param_ident(attrs: Vec<Attribute>, ident: Ident) -> GenericParam {
+    GenericParam::Type(TypeParam {
+        attrs,
+        ident,
+        colon_token: None,
+        bounds: Punctuated::new(),
+        eq_token: None,
+        default: None,
+    })
 }
 
 // =================================================================================================
@@ -378,7 +399,10 @@ impl<'a> EnumImpl<'a> {
                 vis: Visibility::Inherited,
                 defaultness: None,
                 sig: item.sig,
-                block: block(vec![Stmt::Expr(method)]),
+                block: Block {
+                    brace_token: token::Brace::default(),
+                    stmts: vec![Stmt::Expr(method)],
+                },
             }))
         })
     }

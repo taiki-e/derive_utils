@@ -178,12 +178,9 @@
 #[macro_use]
 mod macros;
 
-#[macro_use]
-mod utils;
-
 mod parse;
 
-pub use self::parse::*;
+pub use crate::parse::*;
 
 // Not public API.
 #[doc(hidden)]
