@@ -36,6 +36,17 @@ fn param_ident(attrs: Vec<Attribute>, ident: Ident) -> GenericParam {
 // =================================================================================================
 // EnumElements
 
+mod private_maybe_enum {
+    use super::*;
+
+    pub trait Sealed {}
+
+    impl Sealed for ItemEnum {}
+    impl Sealed for Item {}
+    impl Sealed for Stmt {}
+    impl Sealed for DeriveInput {}
+}
+
 /// The elements that compose enums.
 pub struct EnumElements<'a> {
     /// Attributes tagged on the whole enum.
@@ -50,21 +61,9 @@ pub struct EnumElements<'a> {
 }
 
 /// A type that might be enums.
-pub trait MaybeEnum: ToTokens {
+pub trait MaybeEnum: ToTokens + self::private_maybe_enum::Sealed {
     /// Get the elements that compose enums.
     fn elements(&self) -> Result<EnumElements<'_>>;
-}
-
-impl<E: ?Sized + MaybeEnum> MaybeEnum for &E {
-    fn elements(&self) -> Result<EnumElements<'_>> {
-        (**self).elements()
-    }
-}
-
-impl<E: ?Sized + MaybeEnum> MaybeEnum for &mut E {
-    fn elements(&self) -> Result<EnumElements<'_>> {
-        (**self).elements()
-    }
 }
 
 impl MaybeEnum for ItemEnum {

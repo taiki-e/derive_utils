@@ -4,6 +4,8 @@
 
 * Removed `EnumImpl::append_items_from_trait` in favor of `EnumImpl::append_items`.
 
+* Banned manual implementation of `MaybeEnum` for forward compatibility.
+
 * Addef `vis: Visibility` field to `EnumElements`.
 
 * Hided some undocumented items from the public API.
