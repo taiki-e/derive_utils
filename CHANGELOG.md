@@ -1,5 +1,7 @@
 # Unreleased
 
+* Updated `proc-macro2`, `syn`, and `quote` to 1.0.
+
 * Banned manual implementation of `MaybeEnum` for forward compatibility.
 
 * Addef `vis: Visibility` field to `EnumElements`.
