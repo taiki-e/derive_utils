@@ -357,10 +357,10 @@ impl<'a> EnumImpl<'a> {
     /// - `self: Pin<&Self>`
     /// - `self: Pin<&mut Self>`
     pub fn push_method(&mut self, item: TraitItemMethod) -> Result<()> {
-        let self_ty = SelfType::parse(item.sig.decl.inputs.iter().next())?;
-        let mut args = Vec::with_capacity(item.sig.decl.inputs.len());
-        item.sig.decl.inputs.iter().skip(1).try_for_each(|arg| match arg {
-            FnArg::Captured(arg) => {
+        let self_ty = SelfType::parse(item.sig.inputs.iter().next())?;
+        let mut args = Vec::with_capacity(item.sig.inputs.len());
+        item.sig.inputs.iter().skip(1).try_for_each(|arg| match arg {
+            FnArg::Typed(arg) => {
                 args.push(&arg.pat);
                 Ok(())
             }
@@ -433,8 +433,6 @@ impl<'a> EnumImpl<'a> {
     pub fn append_items_from_trait(&mut self, item: ItemTrait) -> Result<()> {
         let fst = self.data.fields.iter().next();
         item.items.into_iter().try_for_each(|item| match item {
-            TraitItem::Const(_) | TraitItem::Macro(_) | TraitItem::Verbatim(_) => Ok(()),
-
             // The TraitItemType::generics field (Generic associated types (GAT)) are not supported
             TraitItem::Type(TraitItemType { ident, .. }) => {
                 let trait_ = self.trait_.as_ref().map(|t| &t.ty);
@@ -443,6 +441,8 @@ impl<'a> EnumImpl<'a> {
             }
 
             TraitItem::Method(method) => self.push_method(method),
+
+            _ => Ok(()),
         })
     }
 
@@ -593,7 +593,7 @@ enum CaptureMode {
 impl SelfType {
     fn parse(arg: Option<&FnArg>) -> Result<Self> {
         fn remove_last_path_args(mut path: Path) -> Path {
-            path.segments.last_mut().unwrap().into_value().arguments = PathArguments::None;
+            path.segments.last_mut().unwrap().arguments = PathArguments::None;
             path
         }
 
@@ -602,45 +602,46 @@ impl SelfType {
         }
 
         match arg {
-            Some(FnArg::SelfRef(_)) | Some(FnArg::SelfValue(_)) => Ok(SelfType::None),
+            Some(FnArg::Receiver(_)) => Ok(SelfType::None),
 
-            Some(FnArg::Captured(ArgCaptured {
-                pat: Pat::Ident(PatIdent { ident, .. }),
-                ty: Type::Path(TypePath { qself: None, path }),
-                ..
-            })) if ident == "self" => {
-                let ty = &path.segments[path.segments.len() - 1];
-                if let PathArguments::AngleBracketed(args) = &ty.arguments {
-                    if args.args.len() == 1 && ty.ident == "Pin" {
-                        if let GenericArgument::Type(Type::Reference(TypeReference {
-                            mutability,
-                            elem,
-                            ..
-                        })) = &args.args[0]
-                        {
-                            match &**elem {
-                                Type::Path(TypePath { path: p, qself: None })
-                                    if p.is_ident("Self") =>
-                                {
-                                    return Ok(SelfType::Pin(
-                                        CaptureMode::Ref { mutability: mutability.is_some() },
-                                        remove_last_path_args(path.clone()),
-                                    ));
+            Some(FnArg::Typed(PatType { pat, ty, .. })) => match (&**pat, &**ty) {
+                (
+                    Pat::Ident(PatIdent { ident, .. }),
+                    Type::Path(TypePath { qself: None, path }),
+                ) if ident == "self" => {
+                    let ty = &path.segments[path.segments.len() - 1];
+                    if let PathArguments::AngleBracketed(args) = &ty.arguments {
+                        if args.args.len() == 1 && ty.ident == "Pin" {
+                            if let GenericArgument::Type(Type::Reference(TypeReference {
+                                mutability,
+                                elem,
+                                ..
+                            })) = &args.args[0]
+                            {
+                                match &**elem {
+                                    Type::Path(TypePath { path: p, qself: None })
+                                        if p.is_ident("Self") =>
+                                    {
+                                        return Ok(SelfType::Pin(
+                                            CaptureMode::Ref { mutability: mutability.is_some() },
+                                            remove_last_path_args(path.clone()),
+                                        ));
+                                    }
+                                    _ => {}
                                 }
-                                _ => {}
                             }
                         }
                     }
+
+                    error!(arg, "unsupported first argument type: {}", arg_to_string(arg))
                 }
+                _ => error!(
+                    arg,
+                    "methods that do not have `self` argument are not supported: {}",
+                    arg_to_string(arg)
+                ),
+            },
 
-                error!(arg, "unsupported first argument type: {}", arg_to_string(arg))
-            }
-
-            Some(_) => error!(
-                arg,
-                "methods that do not have `self` argument are not supported: {}",
-                arg_to_string(arg)
-            ),
             None => error!(arg, "methods without arguments are not supported"),
         }
     }
