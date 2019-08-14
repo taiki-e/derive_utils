@@ -1,5 +1,7 @@
 # Unreleased
 
+# 0.9.0 - 2019-08-14
+
 * Updated `proc-macro2`, `syn`, and `quote` to 1.0.
 
 * Banned manual implementation of `MaybeEnum` for forward compatibility.
