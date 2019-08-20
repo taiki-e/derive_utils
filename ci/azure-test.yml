@@ -13,14 +13,15 @@ jobs:
       parameters:
         toolchain: ${{ parameters.toolchain }}
 
-    - script: |
-        cargo ${{ parameters.cmd }}
-      displayName: cargo ${{ parameters.cmd }}
+    - ${{ if not(eq(parameters.cmd, 'test')) }}:
+      - script: |
+          cargo ${{ parameters.cmd }}
+        displayName: cargo ${{ parameters.cmd }}
 
     - ${{ if eq(parameters.cmd, 'test') }}:
       - script: |
-          cargo check --all
-        displayName: cargo check --all
+          cargo ${{ parameters.cmd }} --all
+        displayName: cargo ${{ parameters.cmd }} --all
 
     - ${{ if eq(parameters.rust, 'nightly') }}:
       # Refs: https://github.com/rust-lang/cargo/issues/5657

@@ -188,9 +188,7 @@ pub mod __rt {
     #[doc(hidden)]
     pub use crate::{derive_trait, derive_trait_internal, parse::build_item};
     #[doc(hidden)]
-    pub use proc_macro2::Span;
-    #[doc(hidden)]
-    pub use quote::{quote, ToTokens};
+    pub use quote::{format_ident, quote, ToTokens};
     #[doc(hidden)]
     pub use syn::*;
 }
