@@ -22,7 +22,7 @@ jobs:
           cargo ${{ parameters.cmd }} --all
         displayName: cargo ${{ parameters.cmd }} --all
 
-    - ${{ if eq(parameters.rust, 'nightly') }}:
+    - ${{ if eq(parameters.toolchain, 'nightly') }}:
       # Refs: https://github.com/rust-lang/cargo/issues/5657
       - script: |
           cargo update -Zminimal-versions
