@@ -126,7 +126,10 @@ pub struct EnumData {
 
 impl EnumData {
     /// Constructs a new `EnumData`.
-    pub fn new<E: MaybeEnum>(maybe_enum: &E) -> Result<Self> {
+    pub fn new<E>(maybe_enum: &E) -> Result<Self>
+    where
+        E: MaybeEnum,
+    {
         let elements = MaybeEnum::elements(maybe_enum)?;
         if elements.variants.len() < 2 {
             error!(maybe_enum, "cannot be implemented for enums with less than two variants");
@@ -338,7 +341,7 @@ impl<'a> EnumImpl<'a> {
         self.items.push(item);
     }
 
-    fn arms<F: FnMut(&Ident) -> TokenStream>(&self, f: F) -> TokenStream {
+    fn arms(&self, f: impl FnMut(&Ident) -> TokenStream) -> TokenStream {
         let arms = self.data.variants.iter().map(f);
         quote!(#(#arms,)*)
     }
@@ -458,10 +461,9 @@ impl<'a> EnumImpl<'a> {
         I::IntoIter: ExactSizeIterator,
     {
         #[allow(single_use_lifetimes)]
-        fn generics_params<'a, I>(iter: I) -> impl Iterator<Item = Cow<'a, GenericParam>>
-        where
-            I: Iterator<Item = &'a GenericParam>,
-        {
+        fn generics_params<'a>(
+            iter: impl Iterator<Item = &'a GenericParam>,
+        ) -> impl Iterator<Item = Cow<'a, GenericParam>> {
             iter.map(|param| match param {
                 GenericParam::Type(ty) => {
                     Cow::Owned(param_ident(ty.attrs.clone(), ty.ident.clone()))
