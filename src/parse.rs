@@ -131,8 +131,8 @@ impl EnumData {
         E: MaybeEnum,
     {
         let elements = MaybeEnum::elements(maybe_enum)?;
-        if elements.variants.len() < 2 {
-            error!(maybe_enum, "cannot be implemented for enums with less than two variants");
+        if elements.variants.is_empty() {
+            error!(maybe_enum, "cannot be implemented for enums with no variants");
         }
 
         parse_variants(elements.variants).map(|(variants, fields)| Self {
