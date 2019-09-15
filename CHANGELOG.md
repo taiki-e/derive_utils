@@ -1,5 +1,11 @@
 # Unreleased
 
+# 0.9.1 - 2019-09-15
+
+* [Weakened requirements to a number of enum variants.][15]
+
+[15]: https://github.com/taiki-e/derive_utils/pull/15
+
 # 0.9.0 - 2019-08-14
 
 * Updated `proc-macro2`, `syn`, and `quote` to 1.0.
