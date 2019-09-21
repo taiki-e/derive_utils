@@ -6,9 +6,9 @@ edition = "2018"
 license = "Apache-2.0/MIT"
 repository = "https://github.com/taiki-e/derive_utils"
 documentation = "https://docs.rs/derive_utils/"
-readme = "README.md"
 keywords = ["enum", "macros", "derive"]
 categories = ["rust-patterns", "development-tools::procedural-macro-helpers"]
+readme = "README.md"
 description = """
 A procedural macro helper for easily writing derive macros for enums.
 """
