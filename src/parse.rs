@@ -561,7 +561,11 @@ impl<'a> EnumImpl<'a> {
 
     pub fn build_item(self) -> ItemImpl {
         ItemImpl {
-            attrs: Vec::new(),
+            attrs: if self.unsafe_code {
+                vec![syn::parse_quote!(#[allow(unsafe_code)])]
+            } else {
+                Vec::new()
+            },
             defaultness: if self.defaultness { Some(token::Default::default()) } else { None },
             unsafety: if self.unsafety { Some(token::Unsafe::default()) } else { None },
             impl_token: token::Impl::default(),
