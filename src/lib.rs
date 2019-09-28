@@ -172,9 +172,7 @@
     attr(deny(warnings, rust_2018_idioms, single_use_lifetimes), allow(dead_code))
 ))]
 #![warn(unsafe_code)]
-#![warn(rust_2018_idioms, unreachable_pub)]
-// It cannot be included in the published code because these lints have false positives in the minimum required version.
-#![cfg_attr(test, warn(single_use_lifetimes))]
+#![warn(rust_2018_idioms, single_use_lifetimes, unreachable_pub)]
 #![warn(clippy::all, clippy::pedantic)]
 #![allow(clippy::use_self)]
 
