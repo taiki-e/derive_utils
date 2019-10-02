@@ -5,8 +5,6 @@ on:
   push:
     branches:
       - master
-      # - staging
-      # - trying
   schedule:
     - cron: 00 01 * * 00 # Weekly
 
@@ -16,26 +14,18 @@ jobs:
     env:
       RUSTFLAGS: -Dwarnings
     strategy:
+      fail-fast: true
       matrix:
-        build:
-          - minrust
-          - stable
-          - beta
-          - nightly
-        include:
+        rust:
           # This is the minimum Rust version supported by derive_utils.
           # When updating this, the reminder to update the minimum supported
           # Rust version in README.md.
           #
-          # Tests are not run as tests may require newer versions of rust.
-          - build: minrust
-            rust: 1.31.0
-          - build: stable
-            rust: stable
-          - build: beta
-            rust: beta
-          - build: nightly
-            rust: nightly
+          # Tests are not run as tests may require newer versions of Rust.
+          - 1.31.0
+          - stable
+          - beta
+          - nightly
     steps:
       - uses: actions/checkout@master
       - name: Install Rust
@@ -43,16 +33,16 @@ jobs:
           set -e
           rustup update ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
       - name: cargo check
-        if: matrix.build == 'minrust'
+        if: matrix.rust == '1.31.0'
         run: |
           cargo check
       - name: cargo test
-        if: matrix.build != 'minrust'
+        if: matrix.rust != '1.31.0'
         run: |
           cargo test --all
       # Refs: https://github.com/rust-lang/cargo/issues/5657
       - name: cargo check -Zminimal-versions
-        if: matrix.build == 'nightly'
+        if: matrix.rust == 'nightly'
         run: |
           cargo update -Zminimal-versions
           cargo check
@@ -62,6 +52,7 @@ jobs:
     env:
       RUSTFLAGS: -Dwarnings
     strategy:
+      fail-fast: false
       matrix:
         component:
           - clippy
