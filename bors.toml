@@ -1,1 +1,9 @@
-status = ["taiki-e.derive_utils"]
+status = [
+    "test (minrust)",
+    "test (stable)",
+    "test (beta)",
+    "test (nightly)",
+    "style (clippy)",
+    "style (rustfmt)",
+    "style (rustdoc)",
+]
