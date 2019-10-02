@@ -5,8 +5,8 @@ on:
   push:
     branches:
       - master
-      - staging
-      - trying
+      # - staging
+      # - trying
   schedule:
     - cron: 00 01 * * 00 # Weekly
 
@@ -80,10 +80,10 @@ jobs:
           if rustup component add ${{ matrix.component }}; then
             set -e
           else
+            set -e
             # If the component is unavailable on the latest nightly,
             # use the latest toolchain with the component available.
             # Refs: https://github.com/rust-lang/rustup-components-history#the-web-part
-            set -e
             component=${{ matrix.component }}
             target=`curl https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/$component`
             echo "'$component' is unavailable on the toolchain 'nightly', use the toolchain 'nightly-$target' instead"
