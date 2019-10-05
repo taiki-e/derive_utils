@@ -1,13 +1,10 @@
 # derive_utils
 
-[![ci-badge]][ci-url]
 [![crates-badge]][crates-url]
 [![docs-badge]][docs-url]
 [![license-badge]][license]
 [![rustc-badge]][rustc-url]
 
-[ci-badge]: https://github.com/taiki-e/derive_utils/workflows/ci/badge.svg
-[ci-url]: https://github.com/taiki-e/derive_utils/actions?workflow=ci
 [crates-badge]: https://img.shields.io/crates/v/derive_utils.svg
 [crates-url]: https://crates.io/crates/derive_utils/
 [docs-badge]: https://docs.rs/derive_utils/badge.svg
