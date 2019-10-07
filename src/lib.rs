@@ -163,7 +163,6 @@
 //! See [auto_enums] crate for more examples.
 //!
 //! [auto_enums]: (https://github.com/taiki-e/auto_enums)
-//!
 
 #![recursion_limit = "256"]
 #![doc(html_root_url = "https://docs.rs/derive_utils/0.9.1")]
