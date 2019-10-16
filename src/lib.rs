@@ -12,7 +12,7 @@
 //! use derive_utils::quick_derive;
 //! use proc_macro::TokenStream;
 //!
-//! # #[cfg(all(feature = "std", not(feature = "std")))]
+//! # #[cfg(any())]
 //! #[proc_macro_derive(Iterator)]
 //! # pub fn _derive_iterator(input: TokenStream) -> TokenStream { input }
 //! pub fn derive_iterator(input: TokenStream) -> TokenStream {
@@ -27,7 +27,7 @@
 //!     }
 //! }
 //!
-//! # #[cfg(all(feature = "std", not(feature = "std")))]
+//! # #[cfg(any())]
 //! #[proc_macro_derive(ExactSizeIterator)]
 //! # pub fn _derive_exact_size_iterator(input: TokenStream) -> TokenStream { input }
 //! pub fn derive_exact_size_iterator(input: TokenStream) -> TokenStream {
@@ -42,7 +42,7 @@
 //!     }
 //! }
 //!
-//! # #[cfg(all(feature = "std", not(feature = "std")))]
+//! # #[cfg(any())]
 //! #[proc_macro_derive(FusedIterator)]
 //! # pub fn _derive_fused_iterator(input: TokenStream) -> TokenStream { input }
 //! pub fn derive_fused_iterator(input: TokenStream) -> TokenStream {
@@ -57,7 +57,7 @@
 //!     }
 //! }
 //!
-//! # #[cfg(all(feature = "std", not(feature = "std")))]
+//! # #[cfg(any())]
 //! #[proc_macro_derive(Future)]
 //! # pub fn derive_future(input: TokenStream) -> TokenStream { input }
 //! pub fn derive_future(input: TokenStream) -> TokenStream {
@@ -82,7 +82,7 @@
 //! When deriving for enum like the following:
 //!
 //! ```rust
-//! # #[cfg(all(feature = "std", not(feature = "std")))]
+//! # #[cfg(any())]
 //! #[derive(Iterator, ExactSizeIterator, FusedIterator, Future)]
 //! # struct _Enum<A>(A);
 //! enum Enum<A, B> {
