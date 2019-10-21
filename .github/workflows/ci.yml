@@ -8,7 +8,7 @@ on:
       - staging
       - trying
   schedule:
-    - cron: 00 01 * * 0-6 # Daily
+    - cron: 00 01 * * 00 # Weekly
 
 jobs:
   test:
@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          # This is the minimum Rust version supported by derive_utils.
+          # This is the minimum supported Rust version of this crate.
           # When updating this, the reminder to update the minimum supported
           # Rust version in README.md.
           #
