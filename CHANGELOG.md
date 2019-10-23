@@ -1,22 +1,28 @@
-# Unreleased
+# Changelog
 
-# 0.9.1 - 2019-09-15
+All notable changes to this project will be documented in this file.
+
+This project adheres to [Semantic Versioning](https://semver.org).
+
+## [Unreleased]
+
+## [0.9.1] - 2019-09-15
 
 * [Weakened requirements to a number of enum variants.][15]
 
 [15]: https://github.com/taiki-e/derive_utils/pull/15
 
-# 0.9.0 - 2019-08-14
+## [0.9.0] - 2019-08-14
 
 * Updated `proc-macro2`, `syn`, and `quote` to 1.0.
 
 * Banned manual implementation of `MaybeEnum` for forward compatibility.
 
-* Addef `vis: Visibility` field to `EnumElements`.
+* Added `vis: Visibility` field to `EnumElements`.
 
 * Hided some undocumented items from the public API.
 
-# 0.8.0 - 2019-06-26
+## [0.8.0] - 2019-06-26
 
 * Added `quote::ToTokens` bound to `MaybeEnum`.
 
@@ -24,17 +30,17 @@
 
 * Improved error messages.
 
-# 0.7.2 - 2019-05-30
+## [0.7.2] - 2019-05-30
 
 * Improved error messages.
 
-# 0.7.1 - 2019-05-21
+## [0.7.1] - 2019-05-21
 
 * Improved support for arbitrary self type.
 
 * Improved error messages.
 
-# 0.7.0 - 2019-03-13
+## [0.7.0] - 2019-03-13
 
 * Transition to Rust 2018. With this change, the minimum required version will go up to Rust 1.31.
 
@@ -42,7 +48,7 @@
 
 * Removed `Error` and `Result` types. The current `derive_utils` uses [`syn::Error`](https://docs.rs/syn/0.15/syn/struct.Error.html) and [`syn::Result`](https://docs.rs/syn/0.15/syn/parse/type.Result.html) types.
 
-# 0.6.3 - 2019-02-05
+## [0.6.3] - 2019-02-05
 
 * Added `EnumData::new` method.
 
@@ -50,19 +56,19 @@
 
 * Removed dependency on `smallvec`.
 
-# 0.6.2 - 2019-01-30
+## [0.6.2] - 2019-01-30
 
 * Added `Error::to_compile_error` method.
 
 * Hided some undocumented items from the public API.
 
-# 0.6.1 - 2019-01-26
+## [0.6.1] - 2019-01-26
 
 * Improved support for `self: Pin<&Self>` and `self: Pin<&mut Self>`.
 
 * Updated minimum `smallvec` version to 0.6.8.
 
-# 0.6.0 - 2019-01-09
+## [0.6.0] - 2019-01-09
 
 * Removed `"std"` feature and `std_root` function. `derive_utils` can generate accurate code without `"std"` feature.
 
@@ -70,48 +76,70 @@
 
 * Improved documentation.
 
-# 0.5.4 - 2019-01-03
+## [0.5.4] - 2019-01-03
 
 * Improved documentation.
 
-# 0.5.3 - 2018-12-27
+## [0.5.3] - 2018-12-27
 
 * Improved macro implementations. The trailing comma is supported.
 
 * Improved error messages.
 
-# 0.5.2 - 2018-12-27
+## [0.5.2] - 2018-12-27
 
 * Hided some undocumented items from the public API.
 
-# 0.5.1 - 2018-12-26
+## [0.5.1] - 2018-12-26
 
 * Updated to stable Pin API. `Pin::get_mut_unchecked` renamed to `Pin::get_unchecked_mut` in [stabilization](https://github.com/rust-lang/rust/pull/56939).
 
-# 0.5.0 - 2018-12-23
+## [0.5.0] - 2018-12-23
 
 * Added `quick_derive` macro.
 
 * Removed `derive_trait_with_capacity` macro.
 
-# 0.4.0 - 2018-12-22
+## [0.4.0] - 2018-12-22
 
 * Added support for `self: Pin<&Self>` and `self: Pin<&mut Self>`.
 
 * Allow using the trait name as trait path.
 
-# 0.3.0 - 2018-12-22
+## [0.3.0] - 2018-12-22
 
 * Add `derive_trait` and `derive_trait_with_capacity` macros. With this change, the minimum required version will go up to Rust 1.30.
 
-# 0.2.0 - 2018-12-20
+## [0.2.0] - 2018-12-20
 
 * Support Rust 1.27.
 
-# 0.1.1 - 2018-12-15
+## [0.1.1] - 2018-12-15
 
 * Add `std::error::Error` impls for `derive_utils::Error`.
 
-# 0.1.0 - 2018-12-15
+## [0.1.0] - 2018-12-15 - YANKED
 
 Initial release
+
+[Unreleased]: https://github.com/taiki-e/derive_utils/compare/v0.9.1...HEAD
+[0.9.1]: https://github.com/taiki-e/derive_utils/compare/v0.9.0...v0.9.1
+[0.9.0]: https://github.com/taiki-e/derive_utils/compare/v0.8.0...v0.9.0
+[0.8.0]: https://github.com/taiki-e/derive_utils/compare/v0.7.2...v0.8.0
+[0.7.2]: https://github.com/taiki-e/derive_utils/compare/v0.7.1...v0.7.2
+[0.7.1]: https://github.com/taiki-e/derive_utils/compare/v0.7.0...v0.7.1
+[0.7.0]: https://github.com/taiki-e/derive_utils/compare/v0.6.3...v0.7.0
+[0.6.3]: https://github.com/taiki-e/derive_utils/compare/v0.6.2...v0.6.3
+[0.6.2]: https://github.com/taiki-e/derive_utils/compare/v0.6.1...v0.6.2
+[0.6.1]: https://github.com/taiki-e/derive_utils/compare/v0.6.0...v0.6.1
+[0.6.0]: https://github.com/taiki-e/derive_utils/compare/v0.5.4...v0.6.0
+[0.5.4]: https://github.com/taiki-e/derive_utils/compare/v0.5.3...v0.5.4
+[0.5.3]: https://github.com/taiki-e/derive_utils/compare/v0.5.2...v0.5.3
+[0.5.2]: https://github.com/taiki-e/derive_utils/compare/v0.5.1...v0.5.2
+[0.5.1]: https://github.com/taiki-e/derive_utils/compare/v0.5.0...v0.5.1
+[0.5.0]: https://github.com/taiki-e/derive_utils/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/taiki-e/derive_utils/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/taiki-e/derive_utils/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/taiki-e/derive_utils/compare/v0.1.1...v0.2.0
+[0.1.1]: https://github.com/taiki-e/derive_utils/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/taiki-e/derive_utils/releases/tag/v0.1.0
