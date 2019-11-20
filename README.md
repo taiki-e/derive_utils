@@ -6,9 +6,9 @@
 [![rustc-badge]][rustc-url]
 
 [crates-badge]: https://img.shields.io/crates/v/derive_utils.svg
-[crates-url]: https://crates.io/crates/derive_utils/
+[crates-url]: https://crates.io/crates/derive_utils
 [docs-badge]: https://docs.rs/derive_utils/badge.svg
-[docs-url]: https://docs.rs/derive_utils/
+[docs-url]: https://docs.rs/derive_utils
 [license-badge]: https://img.shields.io/crates/l/derive_utils.svg
 [license]: #license
 [rustc-badge]: https://img.shields.io/badge/rustc-1.31+-lightgray.svg
