@@ -1,5 +1,7 @@
 #![warn(rust_2018_idioms)]
 
+// older compilers require explicit `extern crate`.
+#[allow(unused_extern_crates)]
 extern crate proc_macro;
 
 use derive_utils::quick_derive;
