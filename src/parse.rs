@@ -369,7 +369,7 @@ impl<'a> EnumImpl<'a> {
     /// - `self: Pin<&Self>`
     /// - `self: Pin<&mut Self>`
     pub fn push_method(&mut self, item: TraitItemMethod) -> Result<()> {
-        let self_ty = SelfType::parse(item.sig.inputs.iter().next())?;
+        let self_ty = SelfType::parse(&item.sig)?;
         let mut args = Vec::with_capacity(item.sig.inputs.len());
         item.sig.inputs.iter().skip(1).try_for_each(|arg| match arg {
             FnArg::Typed(arg) => {
@@ -602,35 +602,33 @@ enum CaptureMode {
 }
 
 impl SelfType {
-    fn parse(arg: Option<&FnArg>) -> Result<Self> {
+    fn parse(sig: &Signature) -> Result<Self> {
+        fn get_ty_path(ty: &Type) -> Option<&Path> {
+            if let Type::Path(TypePath { qself: None, path }) = ty { Some(path) } else { None }
+        }
+
         fn remove_last_path_args(mut path: Path) -> Path {
             path.segments.last_mut().unwrap().arguments = PathArguments::None;
             path
         }
 
-        fn get_ty_path(ty: &Type) -> Option<&Path> {
-            if let Type::Path(TypePath { qself: None, path }) = ty { Some(path) } else { None }
-        }
-
-        match arg {
+        match sig.receiver() {
+            None => Err(error!(sig.inputs, "methods without receiver are not supported")),
             Some(FnArg::Receiver(_)) => Ok(SelfType::None),
-
-            Some(FnArg::Typed(pat)) => match (&*pat.pat, get_ty_path(&pat.ty)) {
-                // by-ref binding `ref (mut) self` and sub-patterns `@` are not allowed in receivers (rejected by rustc).
-                // <pat>: <path>
-                (Pat::Ident(pat @ PatIdent { by_ref: None, subpat: None, .. }), Some(path)) => {
+            Some(FnArg::Typed(pat)) => {
+                // (mut) self: <path>
+                if let Some(path) = get_ty_path(&pat.ty) {
                     let ty = path.segments.last().unwrap();
                     if let PathArguments::AngleBracketed(args) = &ty.arguments {
-                        // <pat>: [<path>::]<ty><&mut <elem>..>
+                        // (mut) self: [<path>::]<ty><&(mut) <elem>..>
                         if let Some(GenericArgument::Type(Type::Reference(TypeReference {
                             mutability,
                             elem,
                             ..
-                        }))) = &args.args.first()
+                        }))) = args.args.first()
                         {
-                            // (mut) self: (<path>::)Pin<&mut Self>
+                            // (mut) self: (<path>::)Pin<&(mut) Self>
                             if args.args.len() == 1
-                                && pat.ident == "self"
                                 && ty.ident == "Pin"
                                 && get_ty_path(elem).map_or(false, |path| path.is_ident("Self"))
                             {
@@ -641,21 +639,10 @@ impl SelfType {
                             }
                         }
                     }
-
-                    Err(error!(
-                        arg,
-                        "unsupported first argument type: {}",
-                        arg.unwrap().to_token_stream()
-                    ))
                 }
-                _ => Err(error!(
-                    arg,
-                    "methods that do not have `self` argument are not supported: {}",
-                    arg.unwrap().to_token_stream()
-                )),
-            },
 
-            None => Err(error!(arg, "methods without arguments are not supported")),
+                Err(error!(pat.ty, "unsupported receiver type: {}", pat.ty.to_token_stream()))
+            }
         }
     }
 }

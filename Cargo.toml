@@ -23,4 +23,4 @@ members = ["examples/example", "examples/example_derive"]
 [dependencies]
 proc-macro2 = "1.0"
 quote = "1.0"
-syn = { version = "1.0", features = ["full"] }
+syn = { version = "1.0.7", features = ["full"] }
