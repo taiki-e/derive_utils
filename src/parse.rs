@@ -1,11 +1,7 @@
-use std::{borrow::Cow, mem};
-
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
+use std::{borrow::Cow, mem};
 use syn::{punctuated::Punctuated, *};
-
-// =================================================================================================
-// Utilities
 
 macro_rules! parse_quote {
     ($($tt:tt)*) => {
@@ -15,7 +11,7 @@ macro_rules! parse_quote {
 
 macro_rules! error {
     ($span:expr, $msg:expr) => {
-        return Err(syn::Error::new_spanned(&$span, $msg))
+        syn::Error::new_spanned(&$span, $msg)
     };
     ($span:expr, $($tt:tt)*) => {
         error!($span, format!($($tt)*))
@@ -82,7 +78,7 @@ impl MaybeEnum for Item {
     fn elements(&self) -> Result<EnumElements<'_>> {
         match self {
             Item::Enum(item) => MaybeEnum::elements(item),
-            _ => error!(self, "may only be used on enums"),
+            _ => Err(error!(self, "may only be used on enums")),
         }
     }
 }
@@ -91,7 +87,7 @@ impl MaybeEnum for Stmt {
     fn elements(&self) -> Result<EnumElements<'_>> {
         match self {
             Stmt::Item(Item::Enum(item)) => MaybeEnum::elements(item),
-            _ => error!(self, "may only be used on enums"),
+            _ => Err(error!(self, "may only be used on enums")),
         }
     }
 }
@@ -106,8 +102,7 @@ impl MaybeEnum for DeriveInput {
                 generics: &self.generics,
                 variants: &data.variants,
             }),
-            Data::Struct(_) => error!(self, "cannot be implemented for structs"),
-            Data::Union(_) => error!(self, "cannot be implemented for unions"),
+            _ => Err(error!(self, "may only be used on enums")),
         }
     }
 }
@@ -132,7 +127,7 @@ impl EnumData {
     {
         let elements = MaybeEnum::elements(maybe_enum)?;
         if elements.variants.is_empty() {
-            error!(maybe_enum, "cannot be implemented for enums with no variants");
+            return Err(error!(maybe_enum, "cannot be implemented for enums with no variants"));
         }
 
         parse_variants(elements.variants).map(|(variants, fields)| Self {
@@ -238,17 +233,31 @@ fn parse_variants(variants: &Punctuated<Variant, token::Comma>) -> Result<(Vec<I
         (Vec::with_capacity(variants.len()), Vec::with_capacity(variants.len())),
         |(mut variants, mut fields), v| {
             if let Some((_, e)) = &v.discriminant {
-                error!(e, "an enum with discriminants is not supported")
+                return Err(error!(e, "an enum with discriminants is not supported"));
             }
 
             match &v.fields {
                 Fields::Unnamed(f) => match f.unnamed.len() {
                     1 => fields.push(f.unnamed.iter().next().unwrap().ty.clone()),
-                    0 => error!(v.fields, "a variant with zero fields is not supported"),
-                    _ => error!(v.fields, "a variant with multiple fields is not supported"),
+                    0 => {
+                        return Err(error!(
+                            v.fields,
+                            "a variant with zero fields is not supported"
+                        ));
+                    }
+                    _ => {
+                        return Err(error!(
+                            v.fields,
+                            "a variant with multiple fields is not supported"
+                        ));
+                    }
                 },
-                Fields::Unit => error!(v, "an enum with units variant is not supported"),
-                Fields::Named(_) => error!(v, "an enum with named fields variant is not supported"),
+                Fields::Unit => {
+                    return Err(error!(v, "an enum with units variant is not supported"));
+                }
+                Fields::Named(_) => {
+                    return Err(error!(v, "an enum with named fields variant is not supported"));
+                }
             }
 
             variants.push(v.ident.clone());
@@ -367,7 +376,7 @@ impl<'a> EnumImpl<'a> {
                 args.push(&arg.pat);
                 Ok(())
             }
-            _ => error!(arg, "unsupported arguments type"),
+            _ => Err(error!(arg, "unsupported arguments type")),
         })?;
         let args = &args;
 
@@ -599,52 +608,54 @@ impl SelfType {
             path
         }
 
-        fn arg_to_string(arg: Option<&FnArg>) -> String {
-            arg.unwrap().clone().into_token_stream().to_string()
+        fn get_ty_path(ty: &Type) -> Option<&Path> {
+            if let Type::Path(TypePath { qself: None, path }) = ty { Some(path) } else { None }
         }
 
         match arg {
             Some(FnArg::Receiver(_)) => Ok(SelfType::None),
 
-            Some(FnArg::Typed(PatType { pat, ty, .. })) => match (&**pat, &**ty) {
-                (
-                    Pat::Ident(PatIdent { ident, .. }),
-                    Type::Path(TypePath { qself: None, path }),
-                ) if ident == "self" => {
-                    let ty = &path.segments[path.segments.len() - 1];
+            Some(FnArg::Typed(pat)) => match (&*pat.pat, get_ty_path(&pat.ty)) {
+                // by-ref binding `ref (mut) self` and sub-patterns `@` are not allowed in receivers (rejected by rustc).
+                // <pat>: <path>
+                (Pat::Ident(pat @ PatIdent { by_ref: None, subpat: None, .. }), Some(path)) => {
+                    let ty = path.segments.last().unwrap();
                     if let PathArguments::AngleBracketed(args) = &ty.arguments {
-                        if args.args.len() == 1 && ty.ident == "Pin" {
-                            if let GenericArgument::Type(Type::Reference(TypeReference {
-                                mutability,
-                                elem,
-                                ..
-                            })) = &args.args[0]
+                        // <pat>: [<path>::]<ty><&mut <elem>..>
+                        if let Some(GenericArgument::Type(Type::Reference(TypeReference {
+                            mutability,
+                            elem,
+                            ..
+                        }))) = &args.args.first()
+                        {
+                            // (mut) self: (<path>::)Pin<&mut Self>
+                            if args.args.len() == 1
+                                && pat.ident == "self"
+                                && ty.ident == "Pin"
+                                && get_ty_path(elem).map_or(false, |path| path.is_ident("Self"))
                             {
-                                match &**elem {
-                                    Type::Path(TypePath { path: p, qself: None })
-                                        if p.is_ident("Self") =>
-                                    {
-                                        return Ok(SelfType::Pin(
-                                            CaptureMode::Ref { mutability: mutability.is_some() },
-                                            remove_last_path_args(path.clone()),
-                                        ));
-                                    }
-                                    _ => {}
-                                }
+                                return Ok(SelfType::Pin(
+                                    CaptureMode::Ref { mutability: mutability.is_some() },
+                                    remove_last_path_args(path.clone()),
+                                ));
                             }
                         }
                     }
 
-                    error!(arg, "unsupported first argument type: {}", arg_to_string(arg))
+                    Err(error!(
+                        arg,
+                        "unsupported first argument type: {}",
+                        arg.unwrap().to_token_stream()
+                    ))
                 }
-                _ => error!(
+                _ => Err(error!(
                     arg,
                     "methods that do not have `self` argument are not supported: {}",
-                    arg_to_string(arg)
-                ),
+                    arg.unwrap().to_token_stream()
+                )),
             },
 
-            None => error!(arg, "methods without arguments are not supported"),
+            None => Err(error!(arg, "methods without arguments are not supported")),
         }
     }
 }
