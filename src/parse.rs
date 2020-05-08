@@ -18,17 +18,6 @@ macro_rules! error {
     };
 }
 
-fn param_ident(attrs: Vec<Attribute>, ident: Ident) -> GenericParam {
-    GenericParam::Type(TypeParam {
-        attrs,
-        ident,
-        colon_token: None,
-        bounds: Punctuated::new(),
-        eq_token: None,
-        default: None,
-    })
-}
-
 // =================================================================================================
 // EnumElements
 
@@ -337,7 +326,7 @@ impl<'a> EnumImpl<'a> {
     }
 
     pub fn push_generic_param_ident(&mut self, ident: Ident) {
-        self.push_generic_param(param_ident(Vec::new(), ident));
+        self.push_generic_param(GenericParam::Type(TypeParam::from(ident)));
     }
 
     /// Appends a predicate to the back of `where`-clause.
@@ -475,7 +464,9 @@ impl<'a> EnumImpl<'a> {
         ) -> impl Iterator<Item = Cow<'a, GenericParam>> {
             iter.map(|param| match param {
                 GenericParam::Type(ty) => {
-                    Cow::Owned(param_ident(ty.attrs.clone(), ty.ident.clone()))
+                    let mut param = TypeParam::from(ty.ident.clone());
+                    param.attrs = ty.attrs.clone();
+                    Cow::Owned(GenericParam::Type(param))
                 }
                 param => Cow::Borrowed(param),
             })
