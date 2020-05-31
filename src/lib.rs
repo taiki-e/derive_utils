@@ -185,7 +185,7 @@ pub use crate::parse::*;
 
 // Not public API.
 #[doc(hidden)]
-pub mod __rt {
+pub mod __private {
     #[doc(hidden)]
     pub use crate::{derive_trait, derive_trait_internal, parse::build_item};
     #[doc(hidden)]
