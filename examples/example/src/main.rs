@@ -2,7 +2,7 @@
 
 use example_derive::*;
 
-#[derive(Iterator, ExactSizeIterator, FusedIterator, Future)]
+#[derive(Iterator, ExactSizeIterator, Future)]
 enum Enum<A, B> {
     A(A),
     B(B),
