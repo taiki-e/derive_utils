@@ -6,6 +6,69 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 ## [Unreleased]
 
+* `quick_derive!` macro now accepts both `proc_macro2::TokenStream` and `proc_macro::TokenStream` as input.
+
+* `quick_derive!` macro no longer supports trait path elision.
+
+* The parentheses that wrap the trait path passed to `quick_derive!` macro are no longer needed. For example:
+
+  ```diff
+    quick_derive! {
+        input,
+        // trait path
+  -     (std::iter::Iterator),
+  +     std::iter::Iterator,
+        // trait definition
+        trait Iterator {
+            type Item;
+            fn next(&mut self) -> Option<Self::Item>;
+            fn size_hint(&self) -> (usize, Option<usize>);
+        }
+    }
+  ```
+
+* The way of specifying super trait's associated types has been changed.
+
+  ```diff
+    quick_derive! {
+        input,
+  -     // super trait's associated types
+  -     Item,
+  -     // trait path
+  -     (std::iter::ExactSizeIterator),
+  +     // trait path
+  +     std::iter::ExactSizeIterator,
+  +     // super trait's associated types
+  +     <Item>,
+        // trait definition
+        trait ExactSizeIterator: Iterator {
+            fn len(&self) -> usize;
+        }
+    }
+  ```
+
+* Added `derive_trait` function.
+
+* Added `EnumImpl::{new, from_trait}` functions.
+
+* Added `EnumData::{field_types, variant_idents}` methods.
+
+* Removed `derive_trait!` macro in favor of `derive_trait` function.
+
+* Removed `EnumData::make_impl` and `EnumData::impl_with_capacity` in favor of `EnumImpl::new`.
+
+* Removed `EnumData::make_impl_trait` and `EnumData::impl_trait_with_capacity` in favor of `EnumImpl::from_trait`.
+
+* Removed `EnumImpl::push_generic_param_ident` in favor of `EnumImpl::push_generic_param(TypeParam::from(ident).into())`.
+
+* Removed `MaybeEnum` and `EnumElements` in favor of `syn::parse::<EnumData>()`.
+
+* Removed some hidden APIs.
+
+* Implemented `Deref<Target = syn::ItemEnum>`, `syn::parse::Parse`, and `quote::ToTokens` for `EnumData`
+
+* Implemented `From<EnumData>` for `syn::ItemEnum`
+
 ## [0.9.1] - 2019-09-15
 
 * [Weakened requirements to a number of enum variants.][15]

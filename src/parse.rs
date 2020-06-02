@@ -3,277 +3,77 @@ use quote::{quote, ToTokens};
 use std::{borrow::Cow, mem};
 use syn::{punctuated::Punctuated, *};
 
-macro_rules! parse_quote {
-    ($($tt:tt)*) => {
-        syn::parse2(quote::quote!($($tt)*))
-    };
+use crate::ast::EnumData;
+
+/// A function for creating `proc_macro_derive` like deriving trait to enum so long as all variants are implemented that trait.
+///
+/// # Examples
+///
+/// ```rust
+/// # extern crate proc_macro;
+/// #
+/// use derive_utils::derive_trait;
+/// use proc_macro::TokenStream;
+/// use quote::format_ident;
+///
+/// # #[cfg(any())]
+/// #[proc_macro_derive(Iterator)]
+/// # pub fn _derive_iterator(_: TokenStream) -> TokenStream { unimplemented!() }
+/// pub fn derive_iterator(input: TokenStream) -> TokenStream {
+///     derive_trait(
+///         &syn::parse_macro_input!(input),
+///         // trait path
+///         syn::parse_quote!(std::iter::Iterator),
+///         // super trait's associated types
+///         None,
+///         // trait definition
+///         syn::parse_quote! {
+///             trait Iterator {
+///                 type Item;
+///                 fn next(&mut self) -> Option<Self::Item>;
+///                 fn size_hint(&self) -> (usize, Option<usize>);
+///             }
+///         },
+///     )
+///     .unwrap_or_else(|e| e.to_compile_error())
+///     .into()
+/// }
+///
+/// # #[cfg(any())]
+/// #[proc_macro_derive(ExactSizeIterator)]
+/// # pub fn _derive_exact_size_iterator(_: TokenStream) -> TokenStream { unimplemented!() }
+/// pub fn derive_exact_size_iterator(input: TokenStream) -> TokenStream {
+///     derive_trait(
+///         &syn::parse_macro_input!(input),
+///         // trait path
+///         syn::parse_quote!(std::iter::ExactSizeIterator),
+///         // super trait's associated types
+///         Some(format_ident!("Item")),
+///         // trait definition
+///         syn::parse_quote! {
+///             trait ExactSizeIterator: Iterator {
+///                 fn len(&self) -> usize;
+///             }
+///         },
+///     )
+///     .unwrap_or_else(|e| e.to_compile_error())
+///     .into()
+/// }
+/// ```
+pub fn derive_trait<I>(
+    data: &EnumData,
+    trait_path: Path,
+    supertraits_types: I,
+    trait_def: ItemTrait,
+) -> Result<TokenStream>
+where
+    I: IntoIterator<Item = Ident>,
+    I::IntoIter: ExactSizeIterator,
+{
+    EnumImpl::from_trait(data, trait_path, supertraits_types, trait_def).map(EnumImpl::build)
 }
 
-macro_rules! error {
-    ($span:expr, $msg:expr) => {
-        syn::Error::new_spanned(&$span, $msg)
-    };
-    ($span:expr, $($tt:tt)*) => {
-        error!($span, format!($($tt)*))
-    };
-}
-
-// =================================================================================================
-// EnumElements
-
-mod private_maybe_enum {
-    use super::*;
-
-    pub trait Sealed {}
-
-    impl Sealed for ItemEnum {}
-    impl Sealed for Item {}
-    impl Sealed for Stmt {}
-    impl Sealed for DeriveInput {}
-}
-
-/// The elements that compose enums.
-pub struct EnumElements<'a> {
-    /// Attributes tagged on the whole enum.
-    pub attrs: &'a [Attribute],
-    /// Visibility of the enum.
-    pub vis: &'a Visibility,
-    /// Name of the enum.
-    pub ident: &'a Ident,
-    /// Generics required to complete the definition.
-    pub generics: &'a Generics,
-    pub variants: &'a Punctuated<Variant, token::Comma>,
-}
-
-/// A type that might be enums.
-pub trait MaybeEnum: ToTokens + self::private_maybe_enum::Sealed {
-    /// Get the elements that compose enums.
-    fn elements(&self) -> Result<EnumElements<'_>>;
-}
-
-impl MaybeEnum for ItemEnum {
-    fn elements(&self) -> Result<EnumElements<'_>> {
-        Ok(EnumElements {
-            attrs: &self.attrs,
-            vis: &self.vis,
-            ident: &self.ident,
-            generics: &self.generics,
-            variants: &self.variants,
-        })
-    }
-}
-
-impl MaybeEnum for Item {
-    fn elements(&self) -> Result<EnumElements<'_>> {
-        match self {
-            Item::Enum(item) => MaybeEnum::elements(item),
-            _ => Err(error!(self, "may only be used on enums")),
-        }
-    }
-}
-
-impl MaybeEnum for Stmt {
-    fn elements(&self) -> Result<EnumElements<'_>> {
-        match self {
-            Stmt::Item(Item::Enum(item)) => MaybeEnum::elements(item),
-            _ => Err(error!(self, "may only be used on enums")),
-        }
-    }
-}
-
-impl MaybeEnum for DeriveInput {
-    fn elements(&self) -> Result<EnumElements<'_>> {
-        match &self.data {
-            Data::Enum(data) => Ok(EnumElements {
-                attrs: &self.attrs,
-                vis: &self.vis,
-                ident: &self.ident,
-                generics: &self.generics,
-                variants: &data.variants,
-            }),
-            _ => Err(error!(self, "may only be used on enums")),
-        }
-    }
-}
-
-// =================================================================================================
-// EnumData
-
-/// A structure to make trait implementation to enums more efficient.
-pub struct EnumData {
-    vis: Visibility,
-    ident: Ident,
-    generics: Generics,
-    variants: Vec<Ident>,
-    fields: Vec<Type>,
-}
-
-impl EnumData {
-    /// Constructs a new `EnumData`.
-    pub fn new<E>(maybe_enum: &E) -> Result<Self>
-    where
-        E: MaybeEnum,
-    {
-        let elements = MaybeEnum::elements(maybe_enum)?;
-        if elements.variants.is_empty() {
-            return Err(error!(maybe_enum, "cannot be implemented for enums with no variants"));
-        }
-
-        parse_variants(elements.variants).map(|(variants, fields)| Self {
-            vis: elements.vis.clone(),
-            ident: elements.ident.clone(),
-            generics: elements.generics.clone(),
-            variants,
-            fields,
-        })
-    }
-
-    /// Constructs a new `EnumImpl`.
-    pub fn make_impl(&self) -> Result<EnumImpl<'_>> {
-        EnumImpl::new(self, Vec::new())
-    }
-
-    /// Constructs a new `EnumImpl` with the specified capacity..
-    pub fn impl_with_capacity(&self, capacity: usize) -> Result<EnumImpl<'_>> {
-        EnumImpl::new(self, Vec::with_capacity(capacity))
-    }
-
-    /// Constructs a new `EnumImpl` from `ItemTrait`.
-    ///
-    /// `TraitItem::Method` that has the first argument other than the following is error:
-    /// - `&self`
-    /// - `&mut self`
-    /// - `self`
-    /// - `mut self`
-    /// - `self: Pin<&Self>`
-    /// - `self: Pin<&mut Self>`
-    ///
-    /// The following items are ignored:
-    /// - Generic associated types (GAT) (`TraitItem::Method` that has generics)
-    /// - `TraitItem::Const`
-    /// - `TraitItem::Macro`
-    /// - `TraitItem::Verbatim`
-    pub fn make_impl_trait<I>(
-        &self,
-        trait_path: Path,
-        supertraits_types: I,
-        item: ItemTrait,
-    ) -> Result<EnumImpl<'_>>
-    where
-        I: IntoIterator<Item = Ident>,
-        I::IntoIter: ExactSizeIterator,
-    {
-        EnumImpl::from_trait(self, trait_path, Vec::new(), item, supertraits_types)
-    }
-
-    /// Constructs a new `EnumImpl` from `ItemTrait` with the specified capacity.
-    ///
-    /// See [`EnumData::make_impl_trait`] for supported item types.
-    ///
-    /// [`EnumData::make_impl_trait`]: ./struct.EnumData.html#method.make_impl_trait
-    pub fn impl_trait_with_capacity<I>(
-        &self,
-        capacity: usize,
-        trait_path: Path,
-        supertraits_types: I,
-        item: ItemTrait,
-    ) -> Result<EnumImpl<'_>>
-    where
-        I: IntoIterator<Item = Ident>,
-        I::IntoIter: ExactSizeIterator,
-    {
-        EnumImpl::from_trait(
-            self,
-            trait_path,
-            Vec::with_capacity(capacity),
-            item,
-            supertraits_types,
-        )
-    }
-
-    #[doc(hidden)]
-    pub fn vis(&self) -> &Visibility {
-        &self.vis
-    }
-
-    #[doc(hidden)]
-    pub fn ident(&self) -> &Ident {
-        &self.ident
-    }
-
-    #[doc(hidden)]
-    pub fn generics(&self) -> &Generics {
-        &self.generics
-    }
-
-    #[doc(hidden)]
-    pub fn variants(&self) -> &[Ident] {
-        &self.variants
-    }
-
-    #[doc(hidden)]
-    pub fn fields(&self) -> &[Type] {
-        &self.fields
-    }
-}
-
-fn parse_variants(variants: &Punctuated<Variant, token::Comma>) -> Result<(Vec<Ident>, Vec<Type>)> {
-    variants.iter().try_fold(
-        (Vec::with_capacity(variants.len()), Vec::with_capacity(variants.len())),
-        |(mut variants, mut fields), v| {
-            if let Some((_, e)) = &v.discriminant {
-                return Err(error!(e, "an enum with discriminants is not supported"));
-            }
-
-            match &v.fields {
-                Fields::Unnamed(f) => match f.unnamed.len() {
-                    1 => fields.push(f.unnamed.iter().next().unwrap().ty.clone()),
-                    0 => {
-                        return Err(error!(
-                            v.fields,
-                            "a variant with zero fields is not supported"
-                        ));
-                    }
-                    _ => {
-                        return Err(error!(
-                            v.fields,
-                            "a variant with multiple fields is not supported"
-                        ));
-                    }
-                },
-                Fields::Unit => {
-                    return Err(error!(v, "an enum with units variant is not supported"));
-                }
-                Fields::Named(_) => {
-                    return Err(error!(v, "an enum with named fields variant is not supported"));
-                }
-            }
-
-            variants.push(v.ident.clone());
-            Ok((variants, fields))
-        },
-    )
-}
-
-// =================================================================================================
-// EnumImpl
-
-#[doc(hidden)]
-pub struct Trait {
-    /// `AsRef`
-    path: Path,
-    /// `AsRef<T>`
-    ty: Path,
-}
-
-impl Trait {
-    #[doc(hidden)]
-    pub fn new(path: Path, ty: Path) -> Self {
-        Self { path, ty }
-    }
-}
-
-/// A builder for implementing traits for enums.
+/// A builder for implementing a trait for enums.
 pub struct EnumImpl<'a> {
     data: &'a EnumData,
     defaultness: bool,
@@ -285,48 +85,144 @@ pub struct EnumImpl<'a> {
     unsafe_code: bool,
 }
 
-#[doc(hidden)]
-pub fn build(impls: EnumImpl<'_>) -> TokenStream {
-    impls.build()
-}
-
-#[doc(hidden)]
-pub fn build_item(impls: EnumImpl<'_>) -> ItemImpl {
-    impls.build_item()
-}
-
 impl<'a> EnumImpl<'a> {
-    fn new(data: &'a EnumData, items: Vec<ImplItem>) -> Result<Self> {
+    /// Constructs a new `EnumImpl`.
+    pub fn new(data: &'a EnumData) -> Self {
         let ident = &data.ident;
-        let ty_generics = &data.generics;
-        parse_quote!(#ident #ty_generics).map(|self_ty| Self {
+        let ty_generics = data.generics.split_for_impl().1;
+        Self {
             data,
             defaultness: false,
             unsafety: false,
             generics: data.generics.clone(),
             trait_: None,
-            self_ty: Box::new(self_ty),
-            items,
+            self_ty: Box::new(syn::parse_quote!(#ident #ty_generics)),
+            items: Vec::new(),
             unsafe_code: false,
-        })
+        }
     }
 
-    #[doc(hidden)]
-    pub fn trait_(&mut self) -> &mut Option<Trait> {
-        &mut self.trait_
+    /// Constructs a new `EnumImpl` from a trait definition.
+    ///
+    /// `TraitItem::Method` that has the first argument other than the following is error:
+    /// * `&self`
+    /// * `&mut self`
+    /// * `self`
+    /// * `mut self`
+    /// * `self: Pin<&Self>`
+    /// * `self: Pin<&mut Self>`
+    ///
+    /// The following items are ignored:
+    /// * Generic associated types (GAT) (`TraitItem::Method` that has generics)
+    /// * `TraitItem::Const`
+    /// * `TraitItem::Macro`
+    /// * `TraitItem::Verbatim`
+    ///
+    /// # Panics
+    ///
+    /// Panics if a trait method has a body.
+    pub fn from_trait<I>(
+        data: &'a EnumData,
+        trait_path: Path,
+        supertraits_types: I,
+        mut trait_def: ItemTrait,
+    ) -> Result<Self>
+    where
+        I: IntoIterator<Item = Ident>,
+        I::IntoIter: ExactSizeIterator,
+    {
+        let mut generics = data.generics.clone();
+        let trait_ = {
+            if trait_def.generics.params.is_empty() {
+                trait_path.clone()
+            } else {
+                let ty_generics = trait_def.generics.split_for_impl().1;
+                syn::parse_quote!(#trait_path #ty_generics)
+            }
+        };
+
+        let fst = data.field_types().next();
+        let mut types: Vec<_> = trait_def
+            .items
+            .iter()
+            .filter_map(|item| match item {
+                TraitItem::Type(ty) => Some((false, Cow::Borrowed(&ty.ident))),
+                _ => None,
+            })
+            .collect();
+
+        let supertraits_types = supertraits_types.into_iter();
+        if supertraits_types.len() > 0 {
+            if let Some(TypeParamBound::Trait(_)) = trait_def.supertraits.iter().next() {
+                types.extend(supertraits_types.map(|ident| (true, Cow::Owned(ident))));
+            }
+        }
+
+        let where_clause = &mut generics.make_where_clause().predicates;
+        where_clause.push(syn::parse_quote!(#fst: #trait_));
+        data.field_types()
+            .skip(1)
+            .map(|variant| {
+                if types.is_empty() {
+                    syn::parse_quote!(#variant: #trait_)
+                } else {
+                    let types = types.iter().map(|(supertraits, ident)| {
+                        match trait_def.supertraits.iter().next() {
+                            Some(TypeParamBound::Trait(trait_)) if *supertraits => {
+                                quote!(#ident = <#fst as #trait_>::#ident)
+                            }
+                            _ => quote!(#ident = <#fst as #trait_>::#ident),
+                        }
+                    });
+                    if trait_def.generics.params.is_empty() {
+                        syn::parse_quote!(#variant: #trait_path<#(#types),*>)
+                    } else {
+                        let generics = trait_def.generics.params.iter().map(|param| match param {
+                            GenericParam::Lifetime(def) => def.lifetime.to_token_stream(),
+                            GenericParam::Type(param) => param.ident.to_token_stream(),
+                            GenericParam::Const(param) => param.ident.to_token_stream(),
+                        });
+                        syn::parse_quote!(#variant: #trait_path<#(#generics),*, #(#types),*>)
+                    }
+                }
+            })
+            .for_each(|p| where_clause.push(p));
+
+        if !trait_def.generics.params.is_empty() {
+            generics.params.extend(mem::replace(&mut trait_def.generics.params, Punctuated::new()));
+        }
+
+        if let Some(old) = trait_def.generics.where_clause.as_mut() {
+            if !old.predicates.is_empty() {
+                generics
+                    .make_where_clause()
+                    .predicates
+                    .extend(mem::replace(&mut old.predicates, Punctuated::new()));
+            }
+        }
+
+        let ident = &data.ident;
+        let ty_generics = data.generics.split_for_impl().1;
+        let mut impls = Self {
+            data,
+            defaultness: false,
+            unsafety: trait_def.unsafety.is_some(),
+            generics,
+            trait_: Some(Trait { path: trait_path, ty: trait_ }),
+            self_ty: Box::new(syn::parse_quote!(#ident #ty_generics)),
+            items: Vec::with_capacity(trait_def.items.len()),
+            unsafe_code: false,
+        };
+        impls.append_items_from_trait(trait_def).map(|_| impls)
     }
 
-    #[doc(hidden)]
-    pub fn self_ty(&mut self) -> &mut Type {
-        &mut *self.self_ty
+    pub fn set_trait(&mut self, path: Path) {
+        self.trait_ = Some(Trait::new(path));
     }
 
+    /// Appends a generic type parameter to the back of generics.
     pub fn push_generic_param(&mut self, param: GenericParam) {
         self.generics.params.push(param);
-    }
-
-    pub fn push_generic_param_ident(&mut self, ident: Ident) {
-        self.push_generic_param(GenericParam::Type(TypeParam::from(ident)));
     }
 
     /// Appends a predicate to the back of `where`-clause.
@@ -340,7 +236,7 @@ impl<'a> EnumImpl<'a> {
     }
 
     fn arms(&self, f: impl FnMut(&Ident) -> TokenStream) -> TokenStream {
-        let arms = self.data.variants.iter().map(f);
+        let arms = self.data.variant_idents().map(f);
         quote!(#(#arms,)*)
     }
 
@@ -348,16 +244,22 @@ impl<'a> EnumImpl<'a> {
         self.trait_.as_ref().map(|t| &t.path)
     }
 
-    /// Appends a method from `TraitItemMethod` to impl items.
+    /// Appends a method to impl items.
     ///
     /// A method that has the first argument other than the following is error:
-    /// - `&self`
-    /// - `&mut self`
-    /// - `self`
-    /// - `mut self`
-    /// - `self: Pin<&Self>`
-    /// - `self: Pin<&mut Self>`
+    /// * `&self`
+    /// * `&mut self`
+    /// * `self`
+    /// * `mut self`
+    /// * `self: Pin<&Self>`
+    /// * `self: Pin<&mut Self>`
+    ///
+    /// # Panics
+    ///
+    /// Panics if a trait method has a body.
     pub fn push_method(&mut self, item: TraitItemMethod) -> Result<()> {
+        assert!(item.default.is_none(), "trait method `{}` has a body", item.sig.ident);
+
         let self_ty = SelfType::parse(&item.sig)?;
         let mut args = Vec::with_capacity(item.sig.inputs.len());
         item.sig.inputs.iter().skip(1).try_for_each(|arg| match arg {
@@ -379,187 +281,93 @@ impl<'a> EnumImpl<'a> {
                 } else {
                     self.arms(|v| quote!(#ident::#v(x) => #trait_::#method(x #(,#args)*)))
                 };
-                parse_quote!(match self { #arms })
+                syn::parse_quote!(match self { #arms })
             }
 
             SelfType::Pin(mode, pin) => {
                 self.unsafe_code = true;
                 let trait_ = self.trait_path();
                 let arms = if trait_.is_none() {
-                    self.arms(
-                        |v| quote!(#ident::#v(x) => #pin::new_unchecked(x).#method(#(#args),*)),
-                    )
+                    self.arms(|v| {
+                        quote! {
+                            #ident::#v(x) => #pin::new_unchecked(x).#method(#(#args),*)
+                        }
+                    })
                 } else {
-                    self.arms(|v| quote!(#ident::#v(x) => #trait_::#method(#pin::new_unchecked(x) #(,#args)*)))
+                    self.arms(|v| {
+                        quote! {
+                            #ident::#v(x) => #trait_::#method(#pin::new_unchecked(x) #(,#args)*)
+                        }
+                    })
                 };
 
                 match mode {
                     CaptureMode::Ref { mutability: false } => {
                         if self.unsafety || item.sig.unsafety.is_some() {
-                            parse_quote!(match #pin::get_ref(self) { #arms })
+                            syn::parse_quote! {
+                                match self.get_ref() { #arms }
+                            }
                         } else {
-                            parse_quote!(unsafe { match #pin::get_ref(self) { #arms } })
+                            syn::parse_quote! {
+                                unsafe { match self.get_ref() { #arms } }
+                            }
                         }
                     }
                     CaptureMode::Ref { mutability: true } => {
                         if self.unsafety || item.sig.unsafety.is_some() {
-                            parse_quote!(match #pin::get_unchecked_mut(self) { #arms })
+                            syn::parse_quote! {
+                                match self.get_unchecked_mut() { #arms }
+                            }
                         } else {
-                            parse_quote!(unsafe { match #pin::get_unchecked_mut(self) { #arms } })
+                            syn::parse_quote! {
+                                unsafe { match self.get_unchecked_mut() { #arms } }
+                            }
                         }
                     }
                 }
             }
         };
 
-        method.map(|method| {
-            self.push_item(ImplItem::Method(ImplItemMethod {
-                attrs: item.attrs,
-                vis: Visibility::Inherited,
-                defaultness: None,
-                sig: item.sig,
-                block: Block {
-                    brace_token: token::Brace::default(),
-                    stmts: vec![Stmt::Expr(method)],
-                },
-            }))
-        })
+        self.push_item(ImplItem::Method(ImplItemMethod {
+            attrs: item.attrs,
+            vis: Visibility::Inherited,
+            defaultness: None,
+            sig: item.sig,
+            block: Block { brace_token: token::Brace::default(), stmts: vec![Stmt::Expr(method)] },
+        }));
+
+        Ok(())
     }
 
-    /// Appends items from `ItemTrait` to impl items.
+    /// Appends items from a trait definition to impl items.
     ///
-    /// See [`EnumData::make_impl_trait`] for supported item types.
+    /// See [`EnumImpl::from_trait`] for supported item types.
     ///
-    /// [`EnumData::make_impl_trait`]: ./struct.EnumData.html#method.make_impl_trait
-    pub fn append_items_from_trait(&mut self, item: ItemTrait) -> Result<()> {
-        let fst = self.data.fields.iter().next();
-        item.items.into_iter().try_for_each(|item| match item {
+    /// [`EnumImpl::from_trait`]: ./struct.EnumImpl.html#method.from_trait
+    ///
+    /// # Panics
+    ///
+    /// Panics if a trait method has a body.
+    pub fn append_items_from_trait(&mut self, trait_def: ItemTrait) -> Result<()> {
+        let fst = self.data.field_types().next();
+        trait_def.items.into_iter().try_for_each(|item| match item {
             // The TraitItemType::generics field (Generic associated types (GAT)) are not supported
             TraitItem::Type(TraitItemType { ident, .. }) => {
                 let trait_ = self.trait_.as_ref().map(|t| &t.ty);
-                parse_quote!(type #ident = <#fst as #trait_>::#ident;)
-                    .map(|ty| self.push_item(ImplItem::Type(ty)))
+                let ty = syn::parse_quote!(type #ident = <#fst as #trait_>::#ident;);
+                self.push_item(ImplItem::Type(ty));
+                Ok(())
             }
-
             TraitItem::Method(method) => self.push_method(method),
-
             _ => Ok(()),
         })
     }
 
-    fn from_trait<I>(
-        data: &'a EnumData,
-        path: Path,
-        items: Vec<ImplItem>,
-        mut item: ItemTrait,
-        supertraits_types: I,
-    ) -> Result<Self>
-    where
-        I: IntoIterator<Item = Ident>,
-        I::IntoIter: ExactSizeIterator,
-    {
-        #[allow(single_use_lifetimes)]
-        fn generics_params<'a>(
-            iter: impl Iterator<Item = &'a GenericParam>,
-        ) -> impl Iterator<Item = Cow<'a, GenericParam>> {
-            iter.map(|param| match param {
-                GenericParam::Type(ty) => {
-                    let mut param = TypeParam::from(ty.ident.clone());
-                    param.attrs = ty.attrs.clone();
-                    Cow::Owned(GenericParam::Type(param))
-                }
-                param => Cow::Borrowed(param),
-            })
-        }
-
-        let mut generics = data.generics.clone();
-        let trait_ = {
-            if item.generics.params.is_empty() {
-                path.clone()
-            } else {
-                let generics = generics_params(item.generics.params.iter());
-                parse_quote!(#path<#(#generics),*>)?
-            }
-        };
-
-        let fst = data.fields.iter().next();
-        let mut types: Vec<_> = item
-            .items
-            .iter()
-            .filter_map(|item| match item {
-                TraitItem::Type(ty) => Some((false, Cow::Borrowed(&ty.ident))),
-                _ => None,
-            })
-            .collect();
-
-        let supertraits_types = supertraits_types.into_iter();
-        if supertraits_types.len() > 0 {
-            if let Some(TypeParamBound::Trait(_)) = item.supertraits.iter().next() {
-                types.extend(supertraits_types.map(|ident| (true, Cow::Owned(ident))));
-            }
-        }
-
-        let where_clause = &mut generics.make_where_clause().predicates;
-        where_clause.push(parse_quote!(#fst: #trait_)?);
-        data.fields
-            .iter()
-            .skip(1)
-            .map(|variant| {
-                if types.is_empty() {
-                    parse_quote!(#variant: #trait_)
-                } else {
-                    let types = types.iter().map(|(supertraits, ident)| {
-                        match item.supertraits.iter().next() {
-                            Some(TypeParamBound::Trait(trait_)) if *supertraits => {
-                                quote!(#ident = <#fst as #trait_>::#ident)
-                            }
-                            _ => quote!(#ident = <#fst as #trait_>::#ident),
-                        }
-                    });
-                    if item.generics.params.is_empty() {
-                        parse_quote!(#variant: #path<#(#types),*>)
-                    } else {
-                        let generics = generics_params(item.generics.params.iter());
-                        parse_quote!(#variant: #path<#(#generics),*, #(#types),*>)
-                    }
-                }
-            })
-            .try_for_each(|res| res.map(|f| where_clause.push(f)))?;
-
-        if !item.generics.params.is_empty() {
-            generics.params.extend(mem::replace(&mut item.generics.params, Punctuated::new()));
-        }
-
-        if let Some(old) = item.generics.where_clause.as_mut() {
-            if !old.predicates.is_empty() {
-                generics
-                    .make_where_clause()
-                    .predicates
-                    .extend(mem::replace(&mut old.predicates, Punctuated::new()));
-            }
-        }
-
-        let ident = &data.ident;
-        let ty_generics = &data.generics;
-        parse_quote!(#ident #ty_generics)
-            .map(|self_ty| Self {
-                data,
-                defaultness: false,
-                unsafety: item.unsafety.is_some(),
-                generics,
-                trait_: Some(Trait::new(path, trait_)),
-                self_ty: Box::new(self_ty),
-                items,
-                unsafe_code: false,
-            })
-            .and_then(|mut impls| impls.append_items_from_trait(item).map(|_| impls))
-    }
-
     pub fn build(self) -> TokenStream {
-        self.build_item().into_token_stream()
+        self.build_impl().to_token_stream()
     }
 
-    pub fn build_item(self) -> ItemImpl {
+    pub fn build_impl(self) -> ItemImpl {
         ItemImpl {
             attrs: if self.unsafe_code {
                 vec![syn::parse_quote!(#[allow(unsafe_code)])]
@@ -575,6 +383,19 @@ impl<'a> EnumImpl<'a> {
             brace_token: token::Brace::default(),
             items: self.items,
         }
+    }
+}
+
+struct Trait {
+    /// `AsRef`
+    path: Path,
+    /// `AsRef<T>`
+    ty: Path,
+}
+
+impl Trait {
+    fn new(path: Path) -> Self {
+        Self { path: remove_last_path_args(path.clone()), ty: path }
     }
 }
 
@@ -596,11 +417,6 @@ impl SelfType {
     fn parse(sig: &Signature) -> Result<Self> {
         fn get_ty_path(ty: &Type) -> Option<&Path> {
             if let Type::Path(TypePath { qself: None, path }) = ty { Some(path) } else { None }
-        }
-
-        fn remove_last_path_args(mut path: Path) -> Path {
-            path.segments.last_mut().unwrap().arguments = PathArguments::None;
-            path
         }
 
         match sig.receiver() {
@@ -636,4 +452,9 @@ impl SelfType {
             }
         }
     }
+}
+
+fn remove_last_path_args(mut path: Path) -> Path {
+    path.segments.last_mut().unwrap().arguments = PathArguments::None;
+    path
 }
