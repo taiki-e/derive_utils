@@ -15,19 +15,20 @@ use crate::ast::EnumData;
 /// use derive_utils::derive_trait;
 /// use proc_macro::TokenStream;
 /// use quote::format_ident;
+/// use syn::{parse_macro_input, parse_quote};
 ///
 /// # #[cfg(any())]
 /// #[proc_macro_derive(Iterator)]
 /// # pub fn _derive_iterator(_: TokenStream) -> TokenStream { unimplemented!() }
 /// pub fn derive_iterator(input: TokenStream) -> TokenStream {
 ///     derive_trait(
-///         &syn::parse_macro_input!(input),
+///         &parse_macro_input!(input),
 ///         // trait path
-///         syn::parse_quote!(std::iter::Iterator),
+///         parse_quote!(std::iter::Iterator),
 ///         // super trait's associated types
 ///         None,
 ///         // trait definition
-///         syn::parse_quote! {
+///         parse_quote! {
 ///             trait Iterator {
 ///                 type Item;
 ///                 fn next(&mut self) -> Option<Self::Item>;
@@ -44,13 +45,13 @@ use crate::ast::EnumData;
 /// # pub fn _derive_exact_size_iterator(_: TokenStream) -> TokenStream { unimplemented!() }
 /// pub fn derive_exact_size_iterator(input: TokenStream) -> TokenStream {
 ///     derive_trait(
-///         &syn::parse_macro_input!(input),
+///         &parse_macro_input!(input),
 ///         // trait path
-///         syn::parse_quote!(std::iter::ExactSizeIterator),
+///         parse_quote!(std::iter::ExactSizeIterator),
 ///         // super trait's associated types
 ///         Some(format_ident!("Item")),
 ///         // trait definition
-///         syn::parse_quote! {
+///         parse_quote! {
 ///             trait ExactSizeIterator: Iterator {
 ///                 fn len(&self) -> usize;
 ///             }
