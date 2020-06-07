@@ -141,7 +141,6 @@
 //!
 //! [proc-macro-derive]: https://doc.rust-lang.org/reference/procedural-macros.html#derive-macros
 
-#![recursion_limit = "256"]
 #![doc(html_root_url = "https://docs.rs/derive_utils/0.10.0")]
 #![doc(test(
     no_crate_inject,
