@@ -232,11 +232,6 @@ impl<'a> EnumImpl<'a> {
         self.items.push(item);
     }
 
-    fn arms(&self, f: impl FnMut(&Ident) -> TokenStream) -> TokenStream {
-        let arms = self.data.variant_idents().map(f);
-        quote!(#(#arms,)*)
-    }
-
     fn trait_path(&self) -> Option<&Path> {
         self.trait_.as_ref().map(|t| &t.path)
     }
@@ -271,52 +266,52 @@ impl<'a> EnumImpl<'a> {
         let method = match self_ty {
             ReceiverKind::Normal => {
                 let trait_ = self.trait_path();
-                let arms = if trait_.is_none() {
-                    self.arms(|v| quote!(#ident::#v(x) => x.#method(#(#args),*)))
+                let mut arms = Vec::with_capacity(self.data.variant_idents().len());
+                if trait_.is_none() {
+                    self.data.variant_idents().for_each(|v| {
+                        arms.push(quote! {
+                            #ident::#v(x) => x.#method(#(#args),*),
+                        });
+                    });
                 } else {
-                    self.arms(|v| quote!(#ident::#v(x) => #trait_::#method(x #(,#args)*)))
+                    self.data.variant_idents().for_each(|v| {
+                        arms.push(quote! {
+                            #ident::#v(x) => #trait_::#method(x #(,#args)*),
+                        });
+                    });
                 };
-                parse_quote!(match self { #arms })
+                parse_quote!(match self { #(#arms)* })
             }
             ReceiverKind::Pin { mutability, path: pin } => {
                 self.unsafe_code = true;
                 let trait_ = self.trait_path();
-                let arms = if trait_.is_none() {
-                    self.arms(|v| {
-                        quote! {
-                            #ident::#v(x) => #pin::new_unchecked(x).#method(#(#args),*)
-                        }
+                let mut arms = Vec::with_capacity(self.data.variant_idents().len());
+                if trait_.is_none() {
+                    self.data.variant_idents().for_each(|v| {
+                        arms.push(quote! {
+                            #ident::#v(x) => #pin::new_unchecked(x).#method(#(#args),*),
+                        });
                     })
                 } else {
-                    self.arms(|v| {
-                        quote! {
-                            #ident::#v(x) => #trait_::#method(#pin::new_unchecked(x) #(,#args)*)
-                        }
+                    self.data.variant_idents().for_each(|v| {
+                        arms.push(quote! {
+                            #ident::#v(x) => #trait_::#method(#pin::new_unchecked(x) #(,#args)*),
+                        });
                     })
+                }
+                let expr = if mutability {
+                    quote! { self.get_unchecked_mut() }
+                } else {
+                    quote! { self.get_ref() }
                 };
-
-                if mutability {
-                    if self.unsafety || item.sig.unsafety.is_some() {
-                        parse_quote! {
-                            match self.get_unchecked_mut() { #arms }
-                        }
-                    } else {
-                        parse_quote! {
-                            unsafe {
-                                match self.get_unchecked_mut() { #arms }
-                            }
-                        }
+                if self.unsafety || item.sig.unsafety.is_some() {
+                    parse_quote! {
+                        match #expr { #(#arms)* }
                     }
                 } else {
-                    if self.unsafety || item.sig.unsafety.is_some() {
-                        parse_quote! {
-                            match self.get_ref() { #arms }
-                        }
-                    } else {
-                        parse_quote! {
-                            unsafe {
-                                match self.get_ref() { #arms }
-                            }
+                    parse_quote! {
+                        unsafe {
+                            match #expr { #(#arms)* }
                         }
                     }
                 }
