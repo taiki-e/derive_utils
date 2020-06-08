@@ -97,7 +97,7 @@ impl<'a> EnumImpl<'a> {
             unsafety: false,
             generics: data.generics.clone(),
             trait_: None,
-            self_ty: Box::new(syn::parse_quote!(#ident #ty_generics)),
+            self_ty: Box::new(parse_quote!(#ident #ty_generics)),
             items: Vec::new(),
             unsafe_code: false,
         }
@@ -109,7 +109,6 @@ impl<'a> EnumImpl<'a> {
     /// * `&self`
     /// * `&mut self`
     /// * `self`
-    /// * `mut self`
     /// * `self: Pin<&Self>`
     /// * `self: Pin<&mut Self>`
     ///
@@ -138,7 +137,7 @@ impl<'a> EnumImpl<'a> {
                 trait_path.clone()
             } else {
                 let ty_generics = trait_def.generics.split_for_impl().1;
-                syn::parse_quote!(#trait_path #ty_generics)
+                parse_quote!(#trait_path #ty_generics)
             }
         };
 
@@ -160,34 +159,31 @@ impl<'a> EnumImpl<'a> {
         }
 
         let where_clause = &mut generics.make_where_clause().predicates;
-        where_clause.push(syn::parse_quote!(#fst: #trait_));
-        data.field_types()
-            .skip(1)
-            .map(|variant| {
-                if types.is_empty() {
-                    syn::parse_quote!(#variant: #trait_)
-                } else {
-                    let types = types.iter().map(|(supertraits, ident)| {
-                        match trait_def.supertraits.iter().next() {
-                            Some(TypeParamBound::Trait(trait_)) if *supertraits => {
-                                quote!(#ident = <#fst as #trait_>::#ident)
-                            }
-                            _ => quote!(#ident = <#fst as #trait_>::#ident),
+        where_clause.push(parse_quote!(#fst: #trait_));
+        where_clause.extend(data.field_types().skip(1).map(|variant| -> WherePredicate {
+            if types.is_empty() {
+                parse_quote!(#variant: #trait_)
+            } else {
+                let types = types.iter().map(|(supertraits, ident)| {
+                    match trait_def.supertraits.iter().next() {
+                        Some(TypeParamBound::Trait(trait_)) if *supertraits => {
+                            quote!(#ident = <#fst as #trait_>::#ident)
                         }
-                    });
-                    if trait_def.generics.params.is_empty() {
-                        syn::parse_quote!(#variant: #trait_path<#(#types),*>)
-                    } else {
-                        let generics = trait_def.generics.params.iter().map(|param| match param {
-                            GenericParam::Lifetime(def) => def.lifetime.to_token_stream(),
-                            GenericParam::Type(param) => param.ident.to_token_stream(),
-                            GenericParam::Const(param) => param.ident.to_token_stream(),
-                        });
-                        syn::parse_quote!(#variant: #trait_path<#(#generics),*, #(#types),*>)
+                        _ => quote!(#ident = <#fst as #trait_>::#ident),
                     }
+                });
+                if trait_def.generics.params.is_empty() {
+                    parse_quote!(#variant: #trait_path<#(#types),*>)
+                } else {
+                    let generics = trait_def.generics.params.iter().map(|param| match param {
+                        GenericParam::Lifetime(def) => def.lifetime.to_token_stream(),
+                        GenericParam::Type(param) => param.ident.to_token_stream(),
+                        GenericParam::Const(param) => param.ident.to_token_stream(),
+                    });
+                    parse_quote!(#variant: #trait_path<#(#generics),*, #(#types),*>)
                 }
-            })
-            .for_each(|p| where_clause.push(p));
+            }
+        }));
 
         if !trait_def.generics.params.is_empty() {
             generics.params.extend(mem::replace(&mut trait_def.generics.params, Punctuated::new()));
@@ -210,7 +206,7 @@ impl<'a> EnumImpl<'a> {
             unsafety: trait_def.unsafety.is_some(),
             generics,
             trait_: Some(Trait { path: trait_path, ty: trait_ }),
-            self_ty: Box::new(syn::parse_quote!(#ident #ty_generics)),
+            self_ty: Box::new(parse_quote!(#ident #ty_generics)),
             items: Vec::with_capacity(trait_def.items.len()),
             unsafe_code: false,
         };
@@ -251,7 +247,6 @@ impl<'a> EnumImpl<'a> {
     /// * `&self`
     /// * `&mut self`
     /// * `self`
-    /// * `mut self`
     /// * `self: Pin<&Self>`
     /// * `self: Pin<&mut Self>`
     ///
@@ -261,7 +256,7 @@ impl<'a> EnumImpl<'a> {
     pub fn push_method(&mut self, item: TraitItemMethod) -> Result<()> {
         assert!(item.default.is_none(), "trait method `{}` has a body", item.sig.ident);
 
-        let self_ty = SelfType::parse(&item.sig)?;
+        let self_ty = ReceiverKind::parse(&item.sig)?;
         let mut args = Vec::with_capacity(item.sig.inputs.len());
         item.sig.inputs.iter().skip(1).try_for_each(|arg| match arg {
             FnArg::Typed(arg) => {
@@ -270,22 +265,20 @@ impl<'a> EnumImpl<'a> {
             }
             _ => Err(error!(arg, "unsupported arguments type")),
         })?;
-        let args = &args;
 
         let method = &item.sig.ident;
         let ident = &self.data.ident;
         let method = match self_ty {
-            SelfType::None => {
+            ReceiverKind::Normal => {
                 let trait_ = self.trait_path();
                 let arms = if trait_.is_none() {
                     self.arms(|v| quote!(#ident::#v(x) => x.#method(#(#args),*)))
                 } else {
                     self.arms(|v| quote!(#ident::#v(x) => #trait_::#method(x #(,#args)*)))
                 };
-                syn::parse_quote!(match self { #arms })
+                parse_quote!(match self { #arms })
             }
-
-            SelfType::Pin(mode, pin) => {
+            ReceiverKind::Pin { mutability, path: pin } => {
                 self.unsafe_code = true;
                 let trait_ = self.trait_path();
                 let arms = if trait_.is_none() {
@@ -302,26 +295,27 @@ impl<'a> EnumImpl<'a> {
                     })
                 };
 
-                match mode {
-                    CaptureMode::Ref { mutability: false } => {
-                        if self.unsafety || item.sig.unsafety.is_some() {
-                            syn::parse_quote! {
-                                match self.get_ref() { #arms }
-                            }
-                        } else {
-                            syn::parse_quote! {
-                                unsafe { match self.get_ref() { #arms } }
+                if mutability {
+                    if self.unsafety || item.sig.unsafety.is_some() {
+                        parse_quote! {
+                            match self.get_unchecked_mut() { #arms }
+                        }
+                    } else {
+                        parse_quote! {
+                            unsafe {
+                                match self.get_unchecked_mut() { #arms }
                             }
                         }
                     }
-                    CaptureMode::Ref { mutability: true } => {
-                        if self.unsafety || item.sig.unsafety.is_some() {
-                            syn::parse_quote! {
-                                match self.get_unchecked_mut() { #arms }
-                            }
-                        } else {
-                            syn::parse_quote! {
-                                unsafe { match self.get_unchecked_mut() { #arms } }
+                } else {
+                    if self.unsafety || item.sig.unsafety.is_some() {
+                        parse_quote! {
+                            match self.get_ref() { #arms }
+                        }
+                    } else {
+                        parse_quote! {
+                            unsafe {
+                                match self.get_ref() { #arms }
                             }
                         }
                     }
@@ -355,7 +349,7 @@ impl<'a> EnumImpl<'a> {
             // The TraitItemType::generics field (Generic associated types (GAT)) are not supported
             TraitItem::Type(TraitItemType { ident, .. }) => {
                 let trait_ = self.trait_.as_ref().map(|t| &t.ty);
-                let ty = syn::parse_quote!(type #ident = <#fst as #trait_>::#ident;);
+                let ty = parse_quote!(type #ident = <#fst as #trait_>::#ident;);
                 self.push_item(ImplItem::Type(ty));
                 Ok(())
             }
@@ -371,7 +365,7 @@ impl<'a> EnumImpl<'a> {
     pub fn build_impl(self) -> ItemImpl {
         ItemImpl {
             attrs: if self.unsafe_code {
-                vec![syn::parse_quote!(#[allow(unsafe_code)])]
+                vec![parse_quote!(#[allow(unsafe_code)])]
             } else {
                 Vec::new()
             },
@@ -400,21 +394,14 @@ impl Trait {
     }
 }
 
-enum SelfType {
-    /// `&self`, `&mut self`, `self` or `mut self`
-    None,
-    /// `self: Pin<&Self>` or `self: Pin<&mut Self>`
-    Pin(CaptureMode, Path),
+enum ReceiverKind {
+    /// `&(mut) self`, `(mut) self`, `(mut) self: &(mut) Self`, or `(mut) self: Self`
+    Normal,
+    /// `(mut) self: Pin<&(mut) Self>`
+    Pin { mutability: bool, path: Path },
 }
 
-enum CaptureMode {
-    // `self: Type<Self>`
-    // Value,
-    /// `self: Type<&Self>` or `self: Type<&mut Self>`
-    Ref { mutability: bool },
-}
-
-impl SelfType {
+impl ReceiverKind {
     fn parse(sig: &Signature) -> Result<Self> {
         fn get_ty_path(ty: &Type) -> Option<&Path> {
             if let Type::Path(TypePath { qself: None, path }) = ty { Some(path) } else { None }
@@ -422,31 +409,45 @@ impl SelfType {
 
         match sig.receiver() {
             None => Err(error!(sig.inputs, "methods without receiver are not supported")),
-            Some(FnArg::Receiver(_)) => Ok(SelfType::None),
+            Some(FnArg::Receiver(_)) => Ok(ReceiverKind::Normal),
             Some(FnArg::Typed(pat)) => {
-                // (mut) self: <path>
-                if let Some(path) = get_ty_path(&pat.ty) {
-                    let ty = path.segments.last().unwrap();
-                    if let PathArguments::AngleBracketed(args) = &ty.arguments {
-                        // (mut) self: [<path>::]<ty><&(mut) <elem>..>
-                        if let Some(GenericArgument::Type(Type::Reference(TypeReference {
-                            mutability,
-                            elem,
-                            ..
-                        }))) = args.args.first()
-                        {
-                            // (mut) self: (<path>::)Pin<&(mut) Self>
-                            if args.args.len() == 1
-                                && ty.ident == "Pin"
-                                && get_ty_path(elem).map_or(false, |path| path.is_ident("Self"))
+                match &*pat.ty {
+                    Type::Path(TypePath { qself: None, path }) => {
+                        // (mut) self: Self
+                        if path.is_ident("Self") {
+                            return Ok(ReceiverKind::Normal);
+                        }
+
+                        // (mut) self: <path>
+                        let ty = path.segments.last().unwrap();
+                        if let PathArguments::AngleBracketed(args) = &ty.arguments {
+                            // (mut) self: (<path>::)<ty><&(mut) <elem>..>
+                            if let Some(GenericArgument::Type(Type::Reference(TypeReference {
+                                mutability,
+                                elem,
+                                ..
+                            }))) = args.args.first()
                             {
-                                return Ok(SelfType::Pin(
-                                    CaptureMode::Ref { mutability: mutability.is_some() },
-                                    remove_last_path_args(path.clone()),
-                                ));
+                                // (mut) self: (<path>::)Pin<&(mut) Self>
+                                if args.args.len() == 1
+                                    && ty.ident == "Pin"
+                                    && get_ty_path(elem).map_or(false, |path| path.is_ident("Self"))
+                                {
+                                    return Ok(ReceiverKind::Pin {
+                                        mutability: mutability.is_some(),
+                                        path: remove_last_path_args(path.clone()),
+                                    });
+                                }
                             }
                         }
                     }
+                    Type::Reference(ty) => {
+                        // (mut) self: &(mut) Self
+                        if get_ty_path(&ty.elem).map_or(false, |path| path.is_ident("Self")) {
+                            return Ok(ReceiverKind::Normal);
+                        }
+                    }
+                    _ => {}
                 }
 
                 Err(error!(pat.ty, "unsupported receiver type: {}", pat.ty.to_token_stream()))
