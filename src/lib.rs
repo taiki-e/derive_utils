@@ -64,7 +64,7 @@
 //! }
 //! ```
 //!
-//! #### Generated code
+//! ### Generated code
 //!
 //! When deriving for enum like the following:
 //!

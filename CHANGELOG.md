@@ -139,11 +139,11 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 * Removed deprecated `push_method_pin*` methods. Use `push_method` instead.
 
-* Improved documentation.
+* Documentation improvements.
 
 ## [0.5.4] - 2019-01-03
 
-* Improved documentation.
+* Documentation improvements.
 
 ## [0.5.3] - 2018-12-27
 

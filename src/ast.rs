@@ -15,7 +15,7 @@ pub struct EnumData {
 impl EnumData {
     /// Returns an iterator over field types.
     ///
-    /// ```txt
+    /// ```text
     /// enum Enum<TypeA, TypeB> {
     ///     VariantA(TypeA),
     ///              ^^^^^
@@ -29,7 +29,7 @@ impl EnumData {
 
     /// Returns an iterator over variant names.
     ///
-    /// ```txt
+    /// ```text
     /// enum Enum<TypeA, TypeB> {
     ///     VariantA(TypeA),
     ///     ^^^^^^^^
