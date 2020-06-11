@@ -164,8 +164,7 @@ pub use crate::{
 };
 
 /// A macro for making easy to write `proc_macro_derive` like deriving trait to enum so long as all variants are implemented that trait.
-///
-/// See [crate level documentation](crate) for details.
+/// See crate level documentation for details.
 #[macro_export]
 macro_rules! quick_derive {
     ($input:expr, $trait_path:expr, <$super:ident>, $trait_def:item $(,)*) => {
