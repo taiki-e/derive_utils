@@ -364,11 +364,11 @@ impl<'a> EnumImpl<'a> {
             } else {
                 Vec::new()
             },
-            defaultness: if self.defaultness { Some(token::Default::default()) } else { None },
-            unsafety: if self.unsafety { Some(token::Unsafe::default()) } else { None },
+            defaultness: if self.defaultness { Some(<Token![default]>::default()) } else { None },
+            unsafety: if self.unsafety { Some(<Token![unsafe]>::default()) } else { None },
             impl_token: token::Impl::default(),
             generics: self.generics,
-            trait_: self.trait_.map(|Trait { ty, .. }| (None, ty, token::For::default())),
+            trait_: self.trait_.map(|Trait { ty, .. }| (None, ty, <Token![for]>::default())),
             self_ty: self.self_ty,
             brace_token: token::Brace::default(),
             items: self.items,
