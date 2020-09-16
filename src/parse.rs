@@ -105,7 +105,7 @@ impl<'a> EnumImpl<'a> {
 
     /// Constructs a new `EnumImpl` from a trait definition.
     ///
-    /// `TraitItem::Method` that has the first argument other than the following is error:
+    /// [`TraitItem::Method`] that has the first argument other than the following is error:
     /// * `&self`
     /// * `&mut self`
     /// * `self`
@@ -113,10 +113,10 @@ impl<'a> EnumImpl<'a> {
     /// * `self: Pin<&mut Self>`
     ///
     /// The following items are ignored:
-    /// * Generic associated types (GAT) (`TraitItem::Method` that has generics)
-    /// * `TraitItem::Const`
-    /// * `TraitItem::Macro`
-    /// * `TraitItem::Verbatim`
+    /// * Generic associated types (GAT) ([`TraitItem::Method`] that has generics)
+    /// * [`TraitItem::Const`]
+    /// * [`TraitItem::Macro`]
+    /// * [`TraitItem::Verbatim`]
     ///
     /// # Panics
     ///
@@ -332,8 +332,6 @@ impl<'a> EnumImpl<'a> {
     /// Appends items from a trait definition to impl items.
     ///
     /// See [`EnumImpl::from_trait`] for supported item types.
-    ///
-    /// [`EnumImpl::from_trait`]: ./struct.EnumImpl.html#method.from_trait
     ///
     /// # Panics
     ///
