@@ -10,3 +10,4 @@ proc-macro = true
 
 [dependencies]
 derive_utils = { path = "../.." }
+syn = { version = "1.0" }
