@@ -1,6 +1,6 @@
 #![warn(rust_2018_idioms, single_use_lifetimes)]
 
-use example_derive::*;
+use example_derive::{ExactSizeIterator, Future, Iterator};
 
 #[derive(Iterator, ExactSizeIterator, Future)]
 enum Enum<A, B> {

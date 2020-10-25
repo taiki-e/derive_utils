@@ -1,7 +1,12 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use std::{borrow::Cow, mem};
-use syn::{punctuated::Punctuated, *};
+use syn::{
+    parse_quote, punctuated::Punctuated, token, Block, FnArg, GenericArgument, GenericParam,
+    Generics, Ident, ImplItem, ImplItemMethod, ItemImpl, ItemTrait, Path, PathArguments, Result,
+    Signature, Stmt, Token, TraitItem, TraitItemMethod, TraitItemType, Type, TypeParamBound,
+    TypePath, TypeReference, Visibility, WherePredicate,
+};
 
 use crate::ast::EnumData;
 

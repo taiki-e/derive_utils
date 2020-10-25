@@ -3,7 +3,7 @@ use quote::ToTokens;
 use std::ops::Deref;
 use syn::{
     parse::{Parse, ParseStream},
-    *,
+    Error, Fields, Ident, ItemEnum, Result, Type,
 };
 
 /// A structure to make trait implementation to enums more efficient.
