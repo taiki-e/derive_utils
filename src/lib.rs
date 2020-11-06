@@ -178,28 +178,21 @@ macro_rules! quick_derive {
         $crate::__private::parse_input($input, |data| {
             $crate::derive_trait(
                 &data,
-                $crate::__private::parse2::<$crate::__private::Path>(
-                    $crate::__private::quote!($trait_path)
-                )?,
+                $crate::__private::parse_quote!($trait_path),
                 $crate::__private::Some($crate::__private::format_ident!(stringify!($super))),
-                $crate::__private::parse2::<$crate::__private::ItemTrait>(
-                    $crate::__private::quote!($trait_def),
-                )?,
+                $crate::__private::parse_quote!($trait_def),
             )
         })
         .into()
     };
-    ($input:expr, $trait_path:expr, <$($super:ident)+>, $trait_def:item $(,)*) => {
+    // TODO: $(,)? requires Rust 1.32.
+    ($input:expr, $trait_path:expr, <$($super:ident),+ $(,)*>, $trait_def:item $(,)*) => {
         $crate::__private::parse_input($input, |data| {
             $crate::derive_trait(
                 &data,
-                $crate::__private::parse2::<$crate::__private::Path>(
-                    $crate::__private::quote!($trait_path)
-                )?,
-                vec![$( $crate::__private::format_ident!(stringify!($super)) )+],
-                $crate::__private::parse2::<$crate::__private::ItemTrait>(
-                    $crate::__private::quote!($trait_def),
-                )?,
+                $crate::__private::parse_quote!($trait_path),
+                vec![$( $crate::__private::format_ident!(stringify!($super)) ),+],
+                $crate::__private::parse_quote!($trait_def),
             )
         })
         .into()
@@ -208,13 +201,9 @@ macro_rules! quick_derive {
         $crate::__private::parse_input($input, |data| {
             $crate::derive_trait(
                 &data,
-                $crate::__private::parse2::<$crate::__private::Path>(
-                    $crate::__private::quote!($trait_path)
-                )?,
+                $crate::__private::parse_quote!($trait_path),
                 $crate::__private::None,
-                $crate::__private::parse2::<$crate::__private::ItemTrait>(
-                    $crate::__private::quote!($trait_def),
-                )?,
+                $crate::__private::parse_quote!($trait_def),
             )
         })
         .into()
@@ -229,18 +218,17 @@ pub mod __private {
     #[doc(hidden)]
     pub use std::option::Option::{None, Some};
     #[doc(hidden)]
-    pub use syn::{parse2, ItemTrait, Path};
+    pub use syn::{parse2, parse_quote, ItemTrait, Path};
 
     use proc_macro2::TokenStream;
-    use syn::Result;
 
     use crate::EnumData;
 
     #[doc(hidden)]
     pub fn parse_input(
         input: impl Into<TokenStream>,
-        f: fn(EnumData) -> Result<TokenStream>,
+        f: fn(EnumData) -> TokenStream,
     ) -> TokenStream {
-        parse2::<EnumData>(input.into()).and_then(f).unwrap_or_else(|e| e.to_compile_error())
+        parse2::<EnumData>(input.into()).map(f).unwrap_or_else(|e| e.to_compile_error())
     }
 }

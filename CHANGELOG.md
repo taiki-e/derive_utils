@@ -6,6 +6,10 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 ## [Unreleased]
 
+* `quick_derive!`, `derive_trait`, `EnumImpl::from_trait`, `EnumImpl::push_method`, and `EnumImpl::append_items_from_trait` are now panic if an unsupported trait definition passed, instead of return error. See [#35] for details.
+
+[#35]: https://github.com/taiki-e/derive_utils/pull/35
+
 ## [0.10.0] - 2020-06-02
 
 * `quick_derive!` macro now accepts both `proc_macro2::TokenStream` and `proc_macro::TokenStream` as input.

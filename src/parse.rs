@@ -3,9 +3,9 @@ use quote::{quote, ToTokens};
 use std::{borrow::Cow, mem};
 use syn::{
     parse_quote, punctuated::Punctuated, token, Block, FnArg, GenericArgument, GenericParam,
-    Generics, Ident, ImplItem, ImplItemMethod, ItemImpl, ItemTrait, Path, PathArguments, Result,
-    Signature, Stmt, Token, TraitItem, TraitItemMethod, TraitItemType, Type, TypeParamBound,
-    TypePath, TypeReference, Visibility, WherePredicate,
+    Generics, Ident, ImplItem, ImplItemMethod, ItemImpl, ItemTrait, Path, PathArguments, Signature,
+    Stmt, Token, TraitItem, TraitItemMethod, TraitItemType, Type, TypeParamBound, TypePath,
+    TypeReference, Visibility, WherePredicate,
 };
 
 use crate::ast::EnumData;
@@ -41,7 +41,6 @@ use crate::ast::EnumData;
 ///             }
 ///         },
 ///     )
-///     .unwrap_or_else(|e| e.to_compile_error())
 ///     .into()
 /// }
 ///
@@ -62,7 +61,6 @@ use crate::ast::EnumData;
 ///             }
 ///         },
 ///     )
-///     .unwrap_or_else(|e| e.to_compile_error())
 ///     .into()
 /// }
 /// ```
@@ -71,12 +69,12 @@ pub fn derive_trait<I>(
     trait_path: Path,
     supertraits_types: I,
     trait_def: ItemTrait,
-) -> Result<TokenStream>
+) -> TokenStream
 where
     I: IntoIterator<Item = Ident>,
     I::IntoIter: ExactSizeIterator,
 {
-    EnumImpl::from_trait(data, trait_path, supertraits_types, trait_def).map(EnumImpl::build)
+    EnumImpl::from_trait(data, trait_path, supertraits_types, trait_def).build()
 }
 
 /// A builder for implementing a trait for enums.
@@ -110,13 +108,6 @@ impl<'a> EnumImpl<'a> {
 
     /// Constructs a new `EnumImpl` from a trait definition.
     ///
-    /// [`TraitItem::Method`] that has the first argument other than the following is error:
-    /// * `&self`
-    /// * `&mut self`
-    /// * `self`
-    /// * `self: Pin<&Self>`
-    /// * `self: Pin<&mut Self>`
-    ///
     /// The following items are ignored:
     /// * Generic associated types (GAT) ([`TraitItem::Method`] that has generics)
     /// * [`TraitItem::Const`]
@@ -125,13 +116,19 @@ impl<'a> EnumImpl<'a> {
     ///
     /// # Panics
     ///
-    /// Panics if a trait method has a body.
+    /// Panics if a trait method has a body, no receiver, or a receiver other than the following:
+    ///
+    /// * `&self`
+    /// * `&mut self`
+    /// * `self`
+    /// * `self: Pin<&Self>`
+    /// * `self: Pin<&mut Self>`
     pub fn from_trait<I>(
         data: &'a EnumData,
         trait_path: Path,
         supertraits_types: I,
         mut trait_def: ItemTrait,
-    ) -> Result<Self>
+    ) -> Self
     where
         I: IntoIterator<Item = Ident>,
         I::IntoIter: ExactSizeIterator,
@@ -215,7 +212,8 @@ impl<'a> EnumImpl<'a> {
             items: Vec::with_capacity(trait_def.items.len()),
             unsafe_code: false,
         };
-        impls.append_items_from_trait(trait_def).map(|_| impls)
+        impls.append_items_from_trait(trait_def);
+        impls
     }
 
     pub fn set_trait(&mut self, path: Path) {
@@ -243,28 +241,27 @@ impl<'a> EnumImpl<'a> {
 
     /// Appends a method to impl items.
     ///
-    /// A method that has the first argument other than the following is error:
+    /// # Panics
+    ///
+    /// Panics if a trait method has a body, no receiver, or a receiver other than the following:
+    ///
     /// * `&self`
     /// * `&mut self`
     /// * `self`
     /// * `self: Pin<&Self>`
     /// * `self: Pin<&mut Self>`
-    ///
-    /// # Panics
-    ///
-    /// Panics if a trait method has a body.
-    pub fn push_method(&mut self, item: TraitItemMethod) -> Result<()> {
-        assert!(item.default.is_none(), "trait method `{}` has a body", item.sig.ident);
+    pub fn push_method(&mut self, item: TraitItemMethod) {
+        assert!(item.default.is_none(), "method `{}` has a body", item.sig.ident);
 
-        let self_ty = ReceiverKind::parse(&item.sig)?;
+        let self_ty = ReceiverKind::new(&item.sig);
         let mut args = Vec::with_capacity(item.sig.inputs.len());
-        item.sig.inputs.iter().skip(1).try_for_each(|arg| match arg {
-            FnArg::Typed(arg) => {
-                args.push(&arg.pat);
-                Ok(())
-            }
-            _ => Err(error!(arg, "unsupported arguments type")),
-        })?;
+        item.sig.inputs.iter().skip(1).for_each(|arg| match arg {
+            FnArg::Typed(arg) => args.push(&arg.pat),
+            FnArg::Receiver(_) => panic!(
+                "method `{}` has a receiver in a position other than the first argument",
+                item.sig.ident
+            ),
+        });
 
         let method = &item.sig.ident;
         let ident = &self.data.ident;
@@ -330,29 +327,30 @@ impl<'a> EnumImpl<'a> {
             sig: item.sig,
             block: Block { brace_token: token::Brace::default(), stmts: vec![Stmt::Expr(method)] },
         }));
-
-        Ok(())
     }
 
     /// Appends items from a trait definition to impl items.
     ///
-    /// See [`EnumImpl::from_trait`] for supported item types.
-    ///
     /// # Panics
     ///
-    /// Panics if a trait method has a body.
-    pub fn append_items_from_trait(&mut self, trait_def: ItemTrait) -> Result<()> {
+    /// Panics if a trait method has a body, no receiver, or a receiver other than the following:
+    ///
+    /// * `&self`
+    /// * `&mut self`
+    /// * `self`
+    /// * `self: Pin<&Self>`
+    /// * `self: Pin<&mut Self>`
+    pub fn append_items_from_trait(&mut self, trait_def: ItemTrait) {
         let fst = self.data.field_types().next();
-        trait_def.items.into_iter().try_for_each(|item| match item {
+        trait_def.items.into_iter().for_each(|item| match item {
             // The TraitItemType::generics field (Generic associated types (GAT)) are not supported
             TraitItem::Type(TraitItemType { ident, .. }) => {
                 let trait_ = self.trait_.as_ref().map(|t| &t.ty);
                 let ty = parse_quote!(type #ident = <#fst as #trait_>::#ident;);
                 self.push_item(ImplItem::Type(ty));
-                Ok(())
             }
             TraitItem::Method(method) => self.push_method(method),
-            _ => Ok(()),
+            _ => {}
         })
     }
 
@@ -400,20 +398,20 @@ enum ReceiverKind {
 }
 
 impl ReceiverKind {
-    fn parse(sig: &Signature) -> Result<Self> {
+    fn new(sig: &Signature) -> Self {
         fn get_ty_path(ty: &Type) -> Option<&Path> {
             if let Type::Path(TypePath { qself: None, path }) = ty { Some(path) } else { None }
         }
 
         match sig.receiver() {
-            None => Err(error!(sig.inputs, "methods without receiver are not supported")),
-            Some(FnArg::Receiver(_)) => Ok(ReceiverKind::Normal),
+            None => panic!("method `{}` has no receiver", sig.ident),
+            Some(FnArg::Receiver(_)) => ReceiverKind::Normal,
             Some(FnArg::Typed(pat)) => {
                 match &*pat.ty {
                     Type::Path(TypePath { qself: None, path }) => {
                         // (mut) self: Self
                         if path.is_ident("Self") {
-                            return Ok(ReceiverKind::Normal);
+                            return ReceiverKind::Normal;
                         }
 
                         // (mut) self: <path>
@@ -431,10 +429,10 @@ impl ReceiverKind {
                                     && ty.ident == "Pin"
                                     && get_ty_path(elem).map_or(false, |path| path.is_ident("Self"))
                                 {
-                                    return Ok(ReceiverKind::Pin {
+                                    return ReceiverKind::Pin {
                                         mutability: mutability.is_some(),
                                         path: remove_last_path_args(path.clone()),
-                                    });
+                                    };
                                 }
                             }
                         }
@@ -442,13 +440,17 @@ impl ReceiverKind {
                     Type::Reference(ty) => {
                         // (mut) self: &(mut) Self
                         if get_ty_path(&ty.elem).map_or(false, |path| path.is_ident("Self")) {
-                            return Ok(ReceiverKind::Normal);
+                            return ReceiverKind::Normal;
                         }
                     }
                     _ => {}
                 }
 
-                Err(error!(pat.ty, "unsupported receiver type: {}", pat.ty.to_token_stream()))
+                panic!(
+                    "method `{}` has unsupported receiver type: {}",
+                    sig.ident,
+                    pat.ty.to_token_stream()
+                );
             }
         }
     }
