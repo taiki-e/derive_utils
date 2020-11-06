@@ -24,3 +24,8 @@ members = ["examples/example", "examples/example_derive"]
 proc-macro2 = "1"
 quote = "1"
 syn = { version = "1.0.7", features = ["full"] }
+
+[dev-dependencies]
+rustversion = "1"
+trybuild = "1"
+example_derive = { version = "0", path = "examples/example_derive" }
