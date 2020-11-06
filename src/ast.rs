@@ -74,19 +74,27 @@ impl Parse for EnumData {
                     return Err(error!(e, "may not be used on enums with discriminants"));
                 }
 
+                if v.fields.is_empty() {
+                    return Err(error!(
+                        v,
+                        "may not be used on enums with variants with zero fields"
+                    ));
+                } else if v.fields.len() != 1 {
+                    return Err(error!(
+                        v,
+                        "may not be used on enums with variants with multiple fields"
+                    ));
+                }
+
                 match &v.fields {
-                    Fields::Unnamed(f) => match f.unnamed.len() {
-                        1 => {
-                            field_types.push(f.unnamed.iter().next().unwrap().ty.clone());
-                            Ok(field_types)
-                        }
-                        0 => Err(error!(f, "a variant with zero fields is not supported")),
-                        _ => Err(error!(f, "a variant with multiple fields is not supported")),
-                    },
-                    Fields::Unit => Err(error!(v, "may not be used on enums with unit variants")),
-                    Fields::Named(_) => {
-                        Err(error!(v, "may not be used on enums with struct variants"))
+                    Fields::Unnamed(f) => {
+                        field_types.push(f.unnamed.iter().next().unwrap().ty.clone());
+                        Ok(field_types)
                     }
+                    Fields::Named(_) => {
+                        Err(error!(v, "may not be used on enums with variants with named fields"))
+                    }
+                    Fields::Unit => unreachable!(),
                 }
             },
         )?;
