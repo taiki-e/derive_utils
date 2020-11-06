@@ -12,6 +12,13 @@ fn return_iter(x: i16) -> impl ExactSizeIterator<Item = i16> {
     if x < 0 { Enum::A(x..=0) } else { Enum::B(0..x) }
 }
 
+trait MyTrait1 {
+    type Assoc1;
+    type Assoc2;
+}
+
+trait MyTrait2: MyTrait1 {}
+
 fn main() {
     let iter = return_iter(-10);
     let iter2 = return_iter(10);
