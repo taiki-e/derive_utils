@@ -141,7 +141,7 @@
 //!
 //! [proc-macro-derive]: https://doc.rust-lang.org/reference/procedural-macros.html#derive-macros
 
-#![doc(html_root_url = "https://docs.rs/derive_utils/0.10.0")]
+#![doc(html_root_url = "https://docs.rs/derive_utils/0.11.0")]
 #![doc(test(
     no_crate_inject,
     attr(deny(warnings, rust_2018_idioms, single_use_lifetimes), allow(dead_code))
