@@ -189,7 +189,9 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 * Add `std::error::Error` impls for `derive_utils::Error`.
 
-## [0.1.0] - 2018-12-15 - YANKED
+## [0.1.0] - 2018-12-15
+
+**Note: This release has been yanked.**
 
 Initial release
 
