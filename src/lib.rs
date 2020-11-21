@@ -141,7 +141,6 @@
 //!
 //! [proc-macro-derive]: https://doc.rust-lang.org/reference/procedural-macros.html#derive-macros
 
-#![doc(html_root_url = "https://docs.rs/derive_utils/0.11.0")]
 #![doc(test(
     no_crate_inject,
     attr(deny(warnings, rust_2018_idioms, single_use_lifetimes), allow(dead_code))
@@ -171,6 +170,7 @@ pub use crate::{
 };
 
 /// A macro for making easy to write `proc_macro_derive` like deriving trait to enum so long as all variants are implemented that trait.
+///
 /// See crate level documentation for details.
 #[macro_export]
 macro_rules! quick_derive {
