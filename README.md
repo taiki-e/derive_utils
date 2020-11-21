@@ -1,18 +1,10 @@
 # derive_utils
 
-[![crates-badge]][crates-url]
-[![docs-badge]][docs-url]
-[![license-badge]][license]
-[![rustc-badge]][rustc-url]
-
-[crates-badge]: https://img.shields.io/crates/v/derive_utils.svg
-[crates-url]: https://crates.io/crates/derive_utils
-[docs-badge]: https://docs.rs/derive_utils/badge.svg
-[docs-url]: https://docs.rs/derive_utils
-[license-badge]: https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue.svg
-[license]: #license
-[rustc-badge]: https://img.shields.io/badge/rustc-1.31+-lightgray.svg
-[rustc-url]: https://blog.rust-lang.org/2018/12/06/Rust-1.31-and-rust-2018.html
+[![crates.io](https://img.shields.io/crates/v/derive_utils.svg?style=flat-square&logo=rust)](https://crates.io/crates/derive_utils)
+[![docs.rs](https://img.shields.io/badge/docs.rs-derive__utils-blue?style=flat-square)][docs]
+[![license](https://img.shields.io/badge/license-Apache--2.0_OR_MIT-blue.svg?style=flat-square)](#license)
+[![rustc](https://img.shields.io/badge/rustc-1.31+-blue.svg?style=flat-square)](https://www.rust-lang.org)
+[![build status](https://img.shields.io/github/workflow/status/taiki-e/derive_utils/CI/master?style=flat-square)](https://github.com/taiki-e/derive_utils/actions?query=workflow%3ACI+branch%3Amaster)
 
 A procedural macro helper for easily writing [derives macros][proc-macro-derive] for enums.
 
@@ -166,6 +158,7 @@ where
 
 [`quick_derive!`]: https://docs.rs/derive_utils/0.11/derive_utils/macro.quick_derive.html
 [auto_enums]: https://github.com/taiki-e/auto_enums
+[docs]: https://docs.rs/derive_utils
 [futures-enum]: https://github.com/taiki-e/futures-enum
 [io-enum]: https://github.com/taiki-e/io-enum
 [iter-enum]: https://github.com/taiki-e/iter-enum
@@ -174,7 +167,5 @@ where
 ## License
 
 Licensed under either of [Apache License, Version 2.0](LICENSE-APACHE) or [MIT license](LICENSE-MIT) at your option.
-
-### Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
