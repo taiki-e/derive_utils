@@ -90,7 +90,7 @@ pub struct EnumImpl<'a> {
 }
 
 impl<'a> EnumImpl<'a> {
-    /// Constructs a new `EnumImpl`.
+    /// Creates a new `EnumImpl`.
     pub fn new(data: &'a EnumData) -> Self {
         let ident = &data.ident;
         let ty_generics = data.generics.split_for_impl().1;
@@ -106,7 +106,7 @@ impl<'a> EnumImpl<'a> {
         }
     }
 
-    /// Constructs a new `EnumImpl` from a trait definition.
+    /// Creates a new `EnumImpl` from a trait definition.
     ///
     /// The following items are ignored:
     /// * Generic associated types (GAT) ([`TraitItem::Method`] that has generics)
