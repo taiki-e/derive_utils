@@ -25,6 +25,6 @@ quote = "1"
 syn = { version = "1.0.7", features = ["full"] }
 
 [dev-dependencies]
+example_derive = { path = "examples/example_derive" }
 rustversion = "1"
 trybuild = "1"
-example_derive = { version = "0", path = "examples/example_derive" }
