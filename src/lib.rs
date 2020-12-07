@@ -2,7 +2,8 @@
 //!
 //! # Examples
 //!
-//! [`quick_derive!`] macro make easy to write [`proc_macro_derive`][proc-macro-derive] like deriving trait to enum so long as all variants are implemented that trait.
+//! [`quick_derive!`] macro make easy to write [`proc_macro_derive`][proc-macro-derive]
+//! like deriving trait to enum so long as all variants are implemented that trait.
 //!
 //! ```rust
 //! # extern crate proc_macro;
@@ -169,7 +170,8 @@ pub use crate::{
     parse::{derive_trait, EnumImpl},
 };
 
-/// A macro for making easy to write `proc_macro_derive` like deriving trait to enum so long as all variants are implemented that trait.
+/// A macro for making easy to write `proc_macro_derive` like deriving trait to
+/// enum so long as all variants are implemented that trait.
 ///
 /// See crate level documentation for details.
 #[macro_export]

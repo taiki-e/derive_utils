@@ -10,7 +10,8 @@ use syn::{
 
 use crate::ast::EnumData;
 
-/// A function for creating `proc_macro_derive` like deriving trait to enum so long as all variants are implemented that trait.
+/// A function for creating `proc_macro_derive` like deriving trait to enum so
+/// long as all variants are implemented that trait.
 ///
 /// # Examples
 ///
@@ -116,7 +117,8 @@ impl<'a> EnumImpl<'a> {
     ///
     /// # Panics
     ///
-    /// Panics if a trait method has a body, no receiver, or a receiver other than the following:
+    /// Panics if a trait method has a body, no receiver, or a receiver other
+    /// than the following:
     ///
     /// * `&self`
     /// * `&mut self`
@@ -243,7 +245,8 @@ impl<'a> EnumImpl<'a> {
     ///
     /// # Panics
     ///
-    /// Panics if a trait method has a body, no receiver, or a receiver other than the following:
+    /// Panics if a trait method has a body, no receiver, or a receiver other
+    /// than the following:
     ///
     /// * `&self`
     /// * `&mut self`
@@ -333,7 +336,8 @@ impl<'a> EnumImpl<'a> {
     ///
     /// # Panics
     ///
-    /// Panics if a trait method has a body, no receiver, or a receiver other than the following:
+    /// Panics if a trait method has a body, no receiver, or a receiver other
+    /// than the following:
     ///
     /// * `&self`
     /// * `&mut self`
