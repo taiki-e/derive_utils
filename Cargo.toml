@@ -9,6 +9,7 @@ documentation = "https://docs.rs/derive_utils"
 keywords = ["enum", "macros", "derive"]
 categories = ["rust-patterns", "development-tools::procedural-macro-helpers"]
 readme = "README.md"
+exclude = ["/.github", "/scripts"]
 description = """
 A procedural macro helper for easily writing derive macros for enums.
 """
