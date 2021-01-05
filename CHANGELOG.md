@@ -4,7 +4,15 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org).
 
+<!--
+Note: In this file, do not use the hard wrap in the middle of a sentence for compatibility with GitHub comment style markdown rendering.
+-->
+
 ## [Unreleased]
+
+## [0.11.2] - 2021-01-05
+
+- Exclude unneeded files from crates.io.
 
 ## [0.11.1] - 2020-12-29
 
@@ -199,7 +207,8 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/derive_utils/compare/v0.11.1...HEAD
+[Unreleased]: https://github.com/taiki-e/derive_utils/compare/v0.11.2...HEAD
+[0.11.2]: https://github.com/taiki-e/derive_utils/compare/v0.11.1...v0.11.2
 [0.11.1]: https://github.com/taiki-e/derive_utils/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/taiki-e/derive_utils/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/taiki-e/derive_utils/compare/v0.9.1...v0.10.0
