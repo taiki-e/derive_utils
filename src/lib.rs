@@ -217,6 +217,7 @@ pub mod __private {
     pub use syn::{parse2, parse_quote, ItemTrait, Path};
 
     use proc_macro2::TokenStream;
+    use syn::Error;
 
     use crate::EnumData;
 
@@ -225,6 +226,6 @@ pub mod __private {
         input: impl Into<TokenStream>,
         f: fn(EnumData) -> TokenStream,
     ) -> TokenStream {
-        parse2::<EnumData>(input.into()).map(f).unwrap_or_else(|e| e.to_compile_error())
+        parse2::<EnumData>(input.into()).map(f).unwrap_or_else(Error::into_compile_error)
     }
 }

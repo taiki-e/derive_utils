@@ -22,7 +22,7 @@ members = ["examples/example", "examples/example_derive"]
 [dependencies]
 proc-macro2 = "1"
 quote = "1"
-syn = { version = "1.0.7", features = ["full"] }
+syn = { version = "1.0.56", features = ["full"] }
 
 [dev-dependencies]
 example_derive = { path = "examples/example_derive" }
