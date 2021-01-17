@@ -91,9 +91,7 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [0.9.1] - 2019-09-15
 
-- [Weakened requirements to a number of enum variants.][15]
-
-[15]: https://github.com/taiki-e/derive_utils/pull/15
+- [Weakened requirements to a number of enum variants.](https://github.com/taiki-e/derive_utils/pull/15)
 
 ## [0.9.0] - 2019-08-14
 
