@@ -1,6 +1,7 @@
+use std::ops::Deref;
+
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use std::ops::Deref;
 use syn::{
     parse::{Parse, ParseStream},
     Error, Fields, Ident, ItemEnum, Result, Type,

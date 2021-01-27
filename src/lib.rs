@@ -210,14 +210,14 @@ macro_rules! quick_derive {
 #[doc(hidden)]
 pub mod __private {
     #[doc(hidden)]
-    pub use quote::{format_ident, quote};
-    #[doc(hidden)]
     pub use std::option::Option::{None, Some};
-    #[doc(hidden)]
-    pub use syn::{parse2, parse_quote, ItemTrait, Path};
 
     use proc_macro2::TokenStream;
+    #[doc(hidden)]
+    pub use quote::{format_ident, quote};
     use syn::Error;
+    #[doc(hidden)]
+    pub use syn::{parse2, parse_quote, ItemTrait, Path};
 
     use crate::EnumData;
 

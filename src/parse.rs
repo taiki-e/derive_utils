@@ -1,6 +1,7 @@
+use std::{borrow::Cow, mem};
+
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use std::{borrow::Cow, mem};
 use syn::{
     parse_quote, punctuated::Punctuated, token, Block, FnArg, GenericArgument, GenericParam,
     Generics, Ident, ImplItem, ImplItemMethod, ItemImpl, ItemTrait, Path, PathArguments, Signature,
