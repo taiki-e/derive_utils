@@ -19,6 +19,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 [workspace]
 members = ["examples/example", "examples/example_derive"]
 
+# Note: proc-macro2, quote, and syn are public dependencies.
 [dependencies]
 proc-macro2 = "1"
 quote = "1"
