@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::ops;
 
 use proc_macro2::TokenStream;
 use quote::ToTokens;
@@ -43,7 +43,7 @@ impl EnumData {
     }
 }
 
-impl Deref for EnumData {
+impl ops::Deref for EnumData {
     type Target = ItemEnum;
 
     fn deref(&self) -> &Self::Target {
