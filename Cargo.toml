@@ -8,7 +8,7 @@ repository = "https://github.com/taiki-e/derive_utils"
 documentation = "https://docs.rs/derive_utils"
 keywords = ["enum", "macros", "derive"]
 categories = ["rust-patterns", "development-tools::procedural-macro-helpers"]
-exclude = ["/.*", "/scripts"]
+exclude = ["/.*", "/tools"]
 description = """
 A procedural macro helper for easily writing derive macros for enums.
 """
