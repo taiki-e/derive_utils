@@ -106,6 +106,6 @@ impl Parse for EnumData {
 
 impl ToTokens for EnumData {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.repr.to_tokens(tokens)
+        self.repr.to_tokens(tokens);
     }
 }

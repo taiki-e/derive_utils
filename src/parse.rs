@@ -297,13 +297,13 @@ impl<'a> EnumImpl<'a> {
                         arms.push(quote! {
                             #ident::#v(x) => #pin::new_unchecked(x).#method(#(#args),*),
                         });
-                    })
+                    });
                 } else {
                     self.data.variant_idents().for_each(|v| {
                         arms.push(quote! {
                             #ident::#v(x) => #trait_::#method(#pin::new_unchecked(x) #(,#args)*),
                         });
-                    })
+                    });
                 }
                 let expr = if mutability {
                     quote! { self.get_unchecked_mut() }
@@ -356,7 +356,7 @@ impl<'a> EnumImpl<'a> {
             }
             TraitItem::Method(method) => self.push_method(method),
             _ => {}
-        })
+        });
     }
 
     pub fn build(self) -> TokenStream {
