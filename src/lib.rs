@@ -153,8 +153,20 @@
 #![warn(future_incompatible, rust_2018_idioms, single_use_lifetimes, unreachable_pub)]
 #![warn(clippy::all, clippy::default_trait_access)]
 
-#[macro_use]
-mod utils;
+macro_rules! format_err {
+    ($span:expr, $msg:expr) => {
+        syn::Error::new_spanned(&$span, $msg)
+    };
+    ($span:expr, $($tt:tt)*) => {
+        format_err!($span, format!($($tt)*))
+    };
+}
+
+macro_rules! bail {
+    ($($tt:tt)*) => {
+        return Err(format_err!($($tt)*))
+    };
+}
 
 mod ast;
 mod parse;

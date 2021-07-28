@@ -72,19 +72,13 @@ impl Parse for EnumData {
             Vec::with_capacity(item.variants.len()),
             |mut field_types, v| {
                 if let Some((_, e)) = &v.discriminant {
-                    return Err(error!(e, "may not be used on enums with discriminants"));
+                    bail!(e, "may not be used on enums with discriminants");
                 }
 
                 if v.fields.is_empty() {
-                    return Err(error!(
-                        v,
-                        "may not be used on enums with variants with zero fields"
-                    ));
+                    bail!(v, "may not be used on enums with variants with zero fields");
                 } else if v.fields.len() != 1 {
-                    return Err(error!(
-                        v,
-                        "may not be used on enums with variants with multiple fields"
-                    ));
+                    bail!(v, "may not be used on enums with variants with multiple fields");
                 }
 
                 match &v.fields {
@@ -93,7 +87,7 @@ impl Parse for EnumData {
                         Ok(field_types)
                     }
                     Fields::Named(_) => {
-                        Err(error!(v, "may not be used on enums with variants with named fields"))
+                        bail!(v, "may not be used on enums with variants with named fields");
                     }
                     Fields::Unit => unreachable!(),
                 }
