@@ -405,7 +405,11 @@ enum ReceiverKind {
 impl ReceiverKind {
     fn new(sig: &Signature) -> Self {
         fn get_ty_path(ty: &Type) -> Option<&Path> {
-            if let Type::Path(TypePath { qself: None, path }) = ty { Some(path) } else { None }
+            if let Type::Path(TypePath { qself: None, path }) = ty {
+                Some(path)
+            } else {
+                None
+            }
         }
 
         match sig.receiver() {
