@@ -111,21 +111,21 @@ impl<'a> EnumImpl<'a> {
     /// Creates a new `EnumImpl` from a trait definition.
     ///
     /// The following items are ignored:
-    /// * Generic associated types (GAT) ([`TraitItem::Method`] that has generics)
-    /// * [`TraitItem::Const`]
-    /// * [`TraitItem::Macro`]
-    /// * [`TraitItem::Verbatim`]
+    /// - Generic associated types (GAT) ([`TraitItem::Method`] that has generics)
+    /// - [`TraitItem::Const`]
+    /// - [`TraitItem::Macro`]
+    /// - [`TraitItem::Verbatim`]
     ///
     /// # Panics
     ///
     /// Panics if a trait method has a body, no receiver, or a receiver other
     /// than the following:
     ///
-    /// * `&self`
-    /// * `&mut self`
-    /// * `self`
-    /// * `self: Pin<&Self>`
-    /// * `self: Pin<&mut Self>`
+    /// - `&self`
+    /// - `&mut self`
+    /// - `self`
+    /// - `self: Pin<&Self>`
+    /// - `self: Pin<&mut Self>`
     pub fn from_trait<I>(
         data: &'a EnumData,
         trait_path: Path,
@@ -249,11 +249,11 @@ impl<'a> EnumImpl<'a> {
     /// Panics if a trait method has a body, no receiver, or a receiver other
     /// than the following:
     ///
-    /// * `&self`
-    /// * `&mut self`
-    /// * `self`
-    /// * `self: Pin<&Self>`
-    /// * `self: Pin<&mut Self>`
+    /// - `&self`
+    /// - `&mut self`
+    /// - `self`
+    /// - `self: Pin<&Self>`
+    /// - `self: Pin<&mut Self>`
     pub fn push_method(&mut self, item: TraitItemMethod) {
         assert!(item.default.is_none(), "method `{}` has a body", item.sig.ident);
 
@@ -340,11 +340,11 @@ impl<'a> EnumImpl<'a> {
     /// Panics if a trait method has a body, no receiver, or a receiver other
     /// than the following:
     ///
-    /// * `&self`
-    /// * `&mut self`
-    /// * `self`
-    /// * `self: Pin<&Self>`
-    /// * `self: Pin<&mut Self>`
+    /// - `&self`
+    /// - `&mut self`
+    /// - `self`
+    /// - `self: Pin<&Self>`
+    /// - `self: Pin<&mut Self>`
     pub fn append_items_from_trait(&mut self, trait_def: ItemTrait) {
         let fst = self.data.field_types().next();
         trait_def.items.into_iter().for_each(|item| match item {
