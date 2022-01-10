@@ -57,23 +57,6 @@ pub fn derive_exact_size_iterator(input: TokenStream) -> TokenStream {
         }
     }
 }
-
-#[proc_macro_derive(Future)]
-pub fn derive_future(input: TokenStream) -> TokenStream {
-    quick_derive! {
-        input,
-        // trait path
-        std::future::Future,
-        // trait definition
-        trait Future {
-            type Output;
-            fn poll(
-                self: std::pin::Pin<&mut Self>,
-                cx: &mut std::task::Context<'_>,
-            ) -> std::task::Poll<Self::Output>;
-        }
-    }
-}
 ```
 
 ### Generated code
@@ -125,26 +108,6 @@ where
         match self {
             Enum::A(x) => x.len(),
             Enum::B(x) => x.len(),
-        }
-    }
-}
-
-impl<A, B> std::future::Future for Enum<A, B>
-where
-    A: std::future::Future,
-    B: std::future::Future<Output = <A as std::future::Future>::Output>,
-{
-    type Output = <A as std::future::Future>::Output;
-
-    fn poll(
-        self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Self::Output> {
-        unsafe {
-            match self.get_unchecked_mut() {
-                Enum::A(x) => std::pin::Pin::new_unchecked(x).poll(cx),
-                Enum::B(x) => std::pin::Pin::new_unchecked(x).poll(cx),
-            }
         }
     }
 }

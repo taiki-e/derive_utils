@@ -33,23 +33,6 @@ pub fn derive_exact_size_iterator(input: TokenStream) -> TokenStream {
     }
 }
 
-#[proc_macro_derive(Future)]
-pub fn derive_future(input: TokenStream) -> TokenStream {
-    quick_derive! {
-        input,
-        // trait path
-        std::future::Future,
-        // trait definition
-        trait Future {
-            type Output;
-            fn poll(
-                self: std::pin::Pin<&mut Self>,
-                cx: &mut std::task::Context<'_>,
-            ) -> std::task::Poll<Self::Output>;
-        }
-    }
-}
-
 #[proc_macro_derive(MyTrait1)]
 pub fn derive_my_trait1(input: TokenStream) -> TokenStream {
     quick_derive! {

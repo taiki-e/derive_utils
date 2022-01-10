@@ -1,8 +1,8 @@
 #![warn(rust_2018_idioms, single_use_lifetimes)]
 
-use example_derive::{ExactSizeIterator, Future, Iterator};
+use example_derive::{ExactSizeIterator, Iterator};
 
-#[derive(Iterator, ExactSizeIterator, Future)]
+#[derive(Iterator, ExactSizeIterator)]
 enum Enum<A, B> {
     A(A),
     B(B),
