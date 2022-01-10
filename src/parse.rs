@@ -3,10 +3,10 @@ use std::{borrow::Cow, mem};
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
-    parse_quote, punctuated::Punctuated, token, Block, FnArg, GenericArgument, GenericParam,
-    Generics, Ident, ImplItem, ImplItemMethod, ItemImpl, ItemTrait, Path, PathArguments, Signature,
-    Stmt, Token, TraitItem, TraitItemMethod, TraitItemType, Type, TypeParamBound, TypePath,
-    TypeReference, Visibility, WherePredicate,
+    parse_quote, punctuated::Punctuated, token, Block, FnArg, GenericParam, Generics, Ident,
+    ImplItem, ImplItemMethod, ItemImpl, ItemTrait, Path, PathArguments, Signature, Stmt, Token,
+    TraitItem, TraitItemMethod, TraitItemType, Type, TypeParamBound, TypePath, Visibility,
+    WherePredicate,
 };
 
 use crate::ast::EnumData;
@@ -88,7 +88,6 @@ pub struct EnumImpl<'a> {
     trait_: Option<Trait>,
     self_ty: Box<Type>,
     items: Vec<ImplItem>,
-    unsafe_code: bool,
 }
 
 impl<'a> EnumImpl<'a> {
@@ -104,7 +103,6 @@ impl<'a> EnumImpl<'a> {
             trait_: None,
             self_ty: Box::new(parse_quote!(#ident #ty_generics)),
             items: Vec::new(),
-            unsafe_code: false,
         }
     }
 
@@ -124,8 +122,6 @@ impl<'a> EnumImpl<'a> {
     /// - `&self`
     /// - `&mut self`
     /// - `self`
-    /// - `self: Pin<&Self>`
-    /// - `self: Pin<&mut Self>`
     pub fn from_trait<I>(
         data: &'a EnumData,
         trait_path: Path,
@@ -213,7 +209,6 @@ impl<'a> EnumImpl<'a> {
             trait_: Some(Trait { path: trait_path, ty: trait_ }),
             self_ty: Box::new(parse_quote!(#ident #ty_generics)),
             items: Vec::with_capacity(trait_def.items.len()),
-            unsafe_code: false,
         };
         impls.append_items_from_trait(trait_def);
         impls
@@ -252,8 +247,6 @@ impl<'a> EnumImpl<'a> {
     /// - `&self`
     /// - `&mut self`
     /// - `self`
-    /// - `self: Pin<&Self>`
-    /// - `self: Pin<&mut Self>`
     pub fn push_method(&mut self, item: TraitItemMethod) {
         assert!(item.default.is_none(), "method `{}` has a body", item.sig.ident);
 
@@ -288,40 +281,6 @@ impl<'a> EnumImpl<'a> {
                 };
                 parse_quote!(match self { #(#arms)* })
             }
-            ReceiverKind::Pin { mutability, path: pin } => {
-                self.unsafe_code = true;
-                let trait_ = self.trait_path();
-                let mut arms = Vec::with_capacity(self.data.variant_idents().len());
-                if trait_.is_none() {
-                    self.data.variant_idents().for_each(|v| {
-                        arms.push(quote! {
-                            #ident::#v(x) => #pin::new_unchecked(x).#method(#(#args),*),
-                        });
-                    });
-                } else {
-                    self.data.variant_idents().for_each(|v| {
-                        arms.push(quote! {
-                            #ident::#v(x) => #trait_::#method(#pin::new_unchecked(x) #(,#args)*),
-                        });
-                    });
-                }
-                let expr = if mutability {
-                    quote! { self.get_unchecked_mut() }
-                } else {
-                    quote! { self.get_ref() }
-                };
-                if self.unsafety || item.sig.unsafety.is_some() {
-                    parse_quote! {
-                        match #expr { #(#arms)* }
-                    }
-                } else {
-                    parse_quote! {
-                        unsafe {
-                            match #expr { #(#arms)* }
-                        }
-                    }
-                }
-            }
         };
 
         self.push_item(ImplItem::Method(ImplItemMethod {
@@ -343,8 +302,6 @@ impl<'a> EnumImpl<'a> {
     /// - `&self`
     /// - `&mut self`
     /// - `self`
-    /// - `self: Pin<&Self>`
-    /// - `self: Pin<&mut Self>`
     pub fn append_items_from_trait(&mut self, trait_def: ItemTrait) {
         let fst = self.data.field_types().next();
         trait_def.items.into_iter().for_each(|item| match item {
@@ -365,11 +322,7 @@ impl<'a> EnumImpl<'a> {
 
     pub fn build_impl(self) -> ItemImpl {
         ItemImpl {
-            attrs: if self.unsafe_code {
-                vec![parse_quote!(#[allow(unsafe_code)])]
-            } else {
-                Vec::new()
-            },
+            attrs: Vec::new(),
             defaultness: if self.defaultness { Some(<Token![default]>::default()) } else { None },
             unsafety: if self.unsafety { Some(<Token![unsafe]>::default()) } else { None },
             impl_token: token::Impl::default(),
@@ -398,8 +351,6 @@ impl Trait {
 enum ReceiverKind {
     /// `&(mut) self`, `(mut) self`, `(mut) self: &(mut) Self`, or `(mut) self: Self`
     Normal,
-    /// `(mut) self: Pin<&(mut) Self>`
-    Pin { mutability: bool, path: Path },
 }
 
 impl ReceiverKind {
@@ -421,29 +372,6 @@ impl ReceiverKind {
                         // (mut) self: Self
                         if path.is_ident("Self") {
                             return ReceiverKind::Normal;
-                        }
-
-                        // (mut) self: <path>
-                        let ty = path.segments.last().unwrap();
-                        if let PathArguments::AngleBracketed(args) = &ty.arguments {
-                            // (mut) self: (<path>::)<ty><&(mut) <elem>..>
-                            if let Some(GenericArgument::Type(Type::Reference(TypeReference {
-                                mutability,
-                                elem,
-                                ..
-                            }))) = args.args.first()
-                            {
-                                // (mut) self: (<path>::)Pin<&(mut) Self>
-                                if args.args.len() == 1
-                                    && ty.ident == "Pin"
-                                    && get_ty_path(elem).map_or(false, |path| path.is_ident("Self"))
-                                {
-                                    return ReceiverKind::Pin {
-                                        mutability: mutability.is_some(),
-                                        path: remove_last_path_args(path.clone()),
-                                    };
-                                }
-                            }
                         }
                     }
                     Type::Reference(ty) => {
