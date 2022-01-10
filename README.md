@@ -14,7 +14,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-derive_utils = "0.11"
+derive_utils = "0.12"
 ```
 
 *Compiler support: requires rustc 1.31+*
@@ -120,7 +120,7 @@ where
 - [io-enum]: \#\[derive(Read, Write, Seek, BufRead)\] for enums.
 - [iter-enum]: \#\[derive(Iterator, DoubleEndedIterator, ExactSizeIterator, Extend)\] for enums.
 
-[`quick_derive!`]: https://docs.rs/derive_utils/0.11/derive_utils/macro.quick_derive.html
+[`quick_derive!`]: https://docs.rs/derive_utils/0.12/derive_utils/macro.quick_derive.html
 [auto_enums]: https://github.com/taiki-e/auto_enums
 [futures-enum]: https://github.com/taiki-e/futures-enum
 [io-enum]: https://github.com/taiki-e/io-enum

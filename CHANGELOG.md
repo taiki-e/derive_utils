@@ -10,6 +10,10 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+## [0.12.0] - 2022-01-10
+
+- Remove support for `self: Pin<&(mut) Self>`. See [#41](https://github.com/taiki-e/derive_utils/pull/41) for more.
+
 ## [0.11.2] - 2021-01-05
 
 - Exclude unneeded files from crates.io.
@@ -201,11 +205,12 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [0.1.0] - 2018-12-15
 
-**Note: This release has been yanked.**
+**NOTE:** This release has been yanked.
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/derive_utils/compare/v0.11.2...HEAD
+[Unreleased]: https://github.com/taiki-e/derive_utils/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/taiki-e/derive_utils/compare/v0.11.2...v0.12.0
 [0.11.2]: https://github.com/taiki-e/derive_utils/compare/v0.11.1...v0.11.2
 [0.11.1]: https://github.com/taiki-e/derive_utils/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/taiki-e/derive_utils/compare/v0.10.0...v0.11.0
