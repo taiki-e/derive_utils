@@ -43,7 +43,7 @@ jobs:
       - uses: taiki-e/github-actions/install-rust@main
         with:
           toolchain: ${{ matrix.rust }}
-      - run: cargo test --workspace
+      - run: cargo test --workspace --all-features
 
   build:
     runs-on: ubuntu-latest
@@ -66,7 +66,7 @@ jobs:
       - uses: taiki-e/install-action@cargo-hack
       - uses: taiki-e/install-action@cargo-minimal-versions
       - uses: taiki-e/install-action@shellcheck
-      - run: cargo fmt --all -- --check
+      - run: cargo fmt --all --check
         if: always()
       - run: cargo clippy --workspace --all-features --all-targets
         if: always()
