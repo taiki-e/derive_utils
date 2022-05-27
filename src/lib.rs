@@ -115,6 +115,8 @@
 #![warn(rust_2018_idioms, single_use_lifetimes, unreachable_pub)]
 #![warn(clippy::all, clippy::default_trait_access)]
 
+// TODO: remove this #[allow(..)] once https://github.com/rust-lang/rust/pull/97032 backported to beta
+#[allow(unknown_lints, unused_macro_rules)]
 macro_rules! format_err {
     ($span:expr, $msg:expr $(,)*) => {
         syn::Error::new_spanned(&$span as &dyn quote::ToTokens, &$msg as &dyn std::fmt::Display)
