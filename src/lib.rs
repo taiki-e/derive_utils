@@ -113,7 +113,8 @@
 ))]
 #![forbid(unsafe_code)]
 #![warn(rust_2018_idioms, single_use_lifetimes, unreachable_pub)]
-#![warn(clippy::all, clippy::default_trait_access)]
+#![warn(clippy::pedantic)]
+#![allow(clippy::must_use_candidate)]
 
 macro_rules! format_err {
     ($span:expr, $msg:expr $(,)*) => {
