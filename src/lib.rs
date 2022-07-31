@@ -113,7 +113,7 @@
 ))]
 #![forbid(unsafe_code)]
 #![warn(rust_2018_idioms, single_use_lifetimes, unreachable_pub)]
-#![warn(clippy::pedantic)]
+#![warn(clippy::exhaustive_enums, clippy::exhaustive_structs, clippy::pedantic)]
 #![allow(clippy::must_use_candidate)]
 
 macro_rules! format_err {
