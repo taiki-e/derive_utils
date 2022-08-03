@@ -1,5 +1,5 @@
-use std::borrow::Cow;
 use core::mem;
+use std::borrow::Cow;
 
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
