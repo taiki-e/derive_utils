@@ -1,4 +1,4 @@
-use std::ops;
+use core::ops;
 
 use proc_macro2::TokenStream;
 use quote::ToTokens;

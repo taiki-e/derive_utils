@@ -113,12 +113,22 @@
 ))]
 #![forbid(unsafe_code)]
 #![warn(rust_2018_idioms, single_use_lifetimes, unreachable_pub)]
-#![warn(clippy::exhaustive_enums, clippy::exhaustive_structs, clippy::pedantic)]
+#![warn(
+    clippy::pedantic,
+    // lints for public library
+    clippy::alloc_instead_of_core,
+    clippy::exhaustive_enums,
+    clippy::exhaustive_structs,
+    clippy::std_instead_of_alloc,
+    clippy::std_instead_of_core,
+)]
 #![allow(clippy::must_use_candidate)]
+
+extern crate alloc;
 
 macro_rules! format_err {
     ($span:expr, $msg:expr $(,)*) => {
-        syn::Error::new_spanned(&$span as &dyn quote::ToTokens, &$msg as &dyn std::fmt::Display)
+        syn::Error::new_spanned(&$span as &dyn quote::ToTokens, &$msg as &dyn core::fmt::Display)
     };
     ($span:expr, $($tt:tt)*) => {
         format_err!($span, format!($($tt)*))
@@ -185,7 +195,7 @@ macro_rules! quick_derive {
 #[doc(hidden)]
 pub mod __private {
     #[doc(hidden)]
-    pub use std::option::Option::{None, Some};
+    pub use core::option::Option::{None, Some};
 
     use proc_macro2::TokenStream;
     #[doc(hidden)]
