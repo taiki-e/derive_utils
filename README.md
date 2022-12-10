@@ -116,13 +116,11 @@ where
 ## Related Projects
 
 - [auto_enums]: A library for to allow multiple return types by automatically generated enum.
-- [futures-enum]: \#\[derive(Future, Stream, Sink, AsyncRead, AsyncWrite, AsyncSeek, AsyncBufRead)\] for enums.
 - [io-enum]: \#\[derive(Read, Write, Seek, BufRead)\] for enums.
 - [iter-enum]: \#\[derive(Iterator, DoubleEndedIterator, ExactSizeIterator, Extend)\] for enums.
 
 [`quick_derive!`]: https://docs.rs/derive_utils/0.12/derive_utils/macro.quick_derive.html
 [auto_enums]: https://github.com/taiki-e/auto_enums
-[futures-enum]: https://github.com/taiki-e/futures-enum
 [io-enum]: https://github.com/taiki-e/io-enum
 [iter-enum]: https://github.com/taiki-e/iter-enum
 [proc-macro-derive]: https://doc.rust-lang.org/reference/procedural-macros.html#derive-macros
