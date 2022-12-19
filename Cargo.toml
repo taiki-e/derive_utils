@@ -18,6 +18,9 @@ targets = ["x86_64-unknown-linux-gnu"]
 [workspace]
 members = ["examples/example", "examples/example_derive"]
 
+[lib]
+doc-scrape-examples = false
+
 # Note: proc-macro2, quote, and syn are public dependencies.
 [dependencies]
 proc-macro2 = "1"
