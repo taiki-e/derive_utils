@@ -3,4 +3,3 @@ idents
 impls
 qself
 smallvec
-supertraits
