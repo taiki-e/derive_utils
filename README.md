@@ -117,7 +117,7 @@ where
 
 - [auto_enums]: A library for to allow multiple return types by automatically generated enum.
 - [io-enum]: \#\[derive(Read, Write, Seek, BufRead)\] for enums.
-- [iter-enum]: \#\[derive(Iterator, DoubleEndedIterator, ExactSizeIterator, Extend)\] for enums.
+- [iter-enum]: \#\[derive(Iterator, DoubleEndedIterator, ExactSizeIterator, FusedIterator, Extend)\] for enums.
 
 [`quick_derive!`]: https://docs.rs/derive_utils/0.12/derive_utils/macro.quick_derive.html
 [auto_enums]: https://github.com/taiki-e/auto_enums

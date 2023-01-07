@@ -1,7 +1,7 @@
 /*!
 A procedural macro helper for easily writing [derives macros][proc-macro-derive] for enums.
 
-# Examples
+## Examples
 
 [`quick_derive!`] macro make easy to write [`proc_macro_derive`][proc-macro-derive]
 like deriving trait to enum so long as all variants are implemented that trait.
@@ -103,6 +103,16 @@ where
 }
 ```
 
+## Related Projects
+
+- [auto_enums]: A library for to allow multiple return types by automatically generated enum.
+- [io-enum]: \#\[derive(Read, Write, Seek, BufRead)\] for enums.
+- [iter-enum]: \#\[derive(Iterator, DoubleEndedIterator, ExactSizeIterator, FusedIterator, Extend)\] for enums.
+
+[`quick_derive!`]: https://docs.rs/derive_utils/0.12/derive_utils/macro.quick_derive.html
+[auto_enums]: https://github.com/taiki-e/auto_enums
+[io-enum]: https://github.com/taiki-e/io-enum
+[iter-enum]: https://github.com/taiki-e/iter-enum
 [proc-macro-derive]: https://doc.rust-lang.org/reference/procedural-macros.html#derive-macros
 */
 
