@@ -16,6 +16,7 @@ A procedural macro helper for easily writing derive macros for enums.
 targets = ["x86_64-unknown-linux-gnu"]
 
 [workspace]
+resolver = "2"
 members = ["examples/example", "examples/example_derive"]
 
 [lib]
