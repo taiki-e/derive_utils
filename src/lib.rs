@@ -153,7 +153,7 @@ pub use crate::{
 /// See crate level documentation for details.
 #[macro_export]
 macro_rules! quick_derive {
-    ($input:expr, $trait_path:expr, <$super:ident>, $trait_def:item $(,)*) => {
+    ($input:expr, $trait_path:expr, <$super:ident>, $trait_def:item $(,)?) => {
         $crate::__private::parse_input($input, |data| {
             $crate::derive_trait(
                 &data,
@@ -164,8 +164,7 @@ macro_rules! quick_derive {
         })
         .into()
     };
-    // TODO: $(,)? requires Rust 1.32.
-    ($input:expr, $trait_path:expr, <$($super:ident),+ $(,)*>, $trait_def:item $(,)*) => {
+    ($input:expr, $trait_path:expr, <$($super:ident),+ $(,)?>, $trait_def:item $(,)?) => {
         $crate::__private::parse_input($input, |data| {
             $crate::derive_trait(
                 &data,
@@ -176,7 +175,7 @@ macro_rules! quick_derive {
         })
         .into()
     };
-    ($input:expr, $trait_path:expr, $trait_def:item $(,)*) => {
+    ($input:expr, $trait_path:expr, $trait_def:item $(,)?) => {
         $crate::__private::parse_input($input, |data| {
             $crate::derive_trait(
                 &data,
