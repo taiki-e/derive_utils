@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Update `syn` dependency to 2. This increase the minimum supported Rust version from Rust 1.31 to Rust 1.56.
+
 ## [0.12.0] - 2022-01-10
 
 - Remove support for `self: Pin<&(mut) Self>`. See [#41](https://github.com/taiki-e/derive_utils/pull/41) for more.
