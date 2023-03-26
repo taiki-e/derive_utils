@@ -110,7 +110,7 @@ impl<'a> EnumImpl<'a> {
     /// Creates a new `EnumImpl` from a trait definition.
     ///
     /// The following items are ignored:
-    /// - Generic associated types (GAT) ([`TraitItem::Method`] that has generics)
+    /// - Generic associated types (GAT) ([`TraitItem::Type`] that has generics)
     /// - [`TraitItem::Const`]
     /// - [`TraitItem::Macro`]
     /// - [`TraitItem::Verbatim`]
