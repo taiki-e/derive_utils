@@ -209,6 +209,6 @@ pub mod __private {
         input: impl Into<TokenStream>,
         f: fn(EnumData) -> TokenStream,
     ) -> TokenStream {
-        parse2::<EnumData>(input.into()).map(f).unwrap_or_else(Error::into_compile_error)
+        parse2::<EnumData>(input.into()).map_or_else(Error::into_compile_error, f)
     }
 }
