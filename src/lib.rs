@@ -136,20 +136,8 @@ where
 )]
 #![allow(clippy::must_use_candidate)]
 
-macro_rules! format_err {
-    ($span:expr, $msg:expr $(,)*) => {
-        syn::Error::new_spanned(&$span as &dyn quote::ToTokens, &$msg as &dyn core::fmt::Display)
-    };
-    ($span:expr, $($tt:tt)*) => {
-        format_err!($span, format!($($tt)*))
-    };
-}
-
-macro_rules! bail {
-    ($($tt:tt)*) => {
-        return Err(format_err!($($tt)*))
-    };
-}
+#[macro_use]
+mod error;
 
 mod ast;
 mod parse;
