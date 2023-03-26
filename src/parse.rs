@@ -5,8 +5,8 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
     parse_quote, punctuated::Punctuated, token, Block, FnArg, GenericParam, Generics, Ident,
-    ImplItem, ImplItemMethod, ItemImpl, ItemTrait, Path, PathArguments, Signature, Stmt, Token,
-    TraitItem, TraitItemMethod, TraitItemType, Type, TypeParamBound, TypePath, Visibility,
+    ImplItem, ImplItemFn, ItemImpl, ItemTrait, Path, PathArguments, Signature, Stmt, Token,
+    TraitItem, TraitItemFn, TraitItemType, Type, TypeParamBound, TypePath, Visibility,
     WherePredicate,
 };
 
@@ -248,7 +248,7 @@ impl<'a> EnumImpl<'a> {
     /// - `&self`
     /// - `&mut self`
     /// - `self`
-    pub fn push_method(&mut self, item: TraitItemMethod) {
+    pub fn push_method(&mut self, item: TraitItemFn) {
         assert!(item.default.is_none(), "method `{}` has a body", item.sig.ident);
 
         let self_ty = ReceiverKind::new(&item.sig);
@@ -284,12 +284,15 @@ impl<'a> EnumImpl<'a> {
             }
         };
 
-        self.push_item(ImplItem::Method(ImplItemMethod {
+        self.push_item(ImplItem::Fn(ImplItemFn {
             attrs: item.attrs,
             vis: Visibility::Inherited,
             defaultness: None,
             sig: item.sig,
-            block: Block { brace_token: token::Brace::default(), stmts: vec![Stmt::Expr(method)] },
+            block: Block {
+                brace_token: token::Brace::default(),
+                stmts: vec![Stmt::Expr(method, None)],
+            },
         }));
     }
 
@@ -312,7 +315,7 @@ impl<'a> EnumImpl<'a> {
                 let ty = parse_quote!(type #ident = <#fst as #trait_>::#ident;);
                 self.push_item(ImplItem::Type(ty));
             }
-            TraitItem::Method(method) => self.push_method(method),
+            TraitItem::Fn(method) => self.push_method(method),
             _ => {}
         });
     }
@@ -364,7 +367,7 @@ impl ReceiverKind {
             }
         }
 
-        match sig.receiver() {
+        match sig.inputs.first() {
             None => panic!("method `{}` has no receiver", sig.ident),
             Some(FnArg::Receiver(_)) => ReceiverKind::Normal,
             Some(FnArg::Typed(pat)) => {

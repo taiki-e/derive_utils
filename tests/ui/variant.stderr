@@ -1,8 +1,8 @@
 error: may not be used on enums without variants
- --> tests/ui/variant.rs:4:14
+ --> tests/ui/variant.rs:4:1
   |
 4 | enum EnumWZV {} //~ ERROR may not be used on enums without variants
-  |              ^^
+  | ^^^^^^^^^^^^^^^
 
 error: may not be used on enums with discriminants
  --> tests/ui/variant.rs:8:9

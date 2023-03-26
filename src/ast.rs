@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
     parse::{Parse, ParseStream},
-    Error, Fields, Ident, ItemEnum, Result, Type,
+    Fields, Ident, ItemEnum, Result, Type,
 };
 
 /// A structure to make trait implementation to enums more efficient.
@@ -62,10 +62,7 @@ impl Parse for EnumData {
         let item: ItemEnum = input.parse()?;
 
         if item.variants.is_empty() {
-            return Err(Error::new(
-                item.brace_token.span,
-                "may not be used on enums without variants",
-            ));
+            bail!(item, "may not be used on enums without variants");
         }
 
         let field_types = item.variants.iter().try_fold(
