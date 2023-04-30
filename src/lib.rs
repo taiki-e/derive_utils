@@ -131,7 +131,7 @@ where
     clippy::alloc_instead_of_core,
     clippy::exhaustive_enums,
     clippy::exhaustive_structs,
-    // clippy::std_instead_of_alloc, // alloc requires Rust 1.36
+    // clippy::std_instead_of_alloc,
     clippy::std_instead_of_core,
 )]
 #![allow(clippy::must_use_candidate)]
