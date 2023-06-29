@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+## [0.13.1] - 2023-06-29
+
 - Fix build error from dependency when built with `-Z minimal-versions`.
 
 ## [0.13.0] - 2023-03-26
@@ -215,7 +217,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/derive_utils/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/taiki-e/derive_utils/compare/v0.13.1...HEAD
+[0.13.1]: https://github.com/taiki-e/derive_utils/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/taiki-e/derive_utils/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/taiki-e/derive_utils/compare/v0.11.2...v0.12.0
 [0.11.2]: https://github.com/taiki-e/derive_utils/compare/v0.11.1...v0.11.2
