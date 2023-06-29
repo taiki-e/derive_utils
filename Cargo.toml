@@ -24,7 +24,7 @@ doc-scrape-examples = false
 
 # Note: proc-macro2, quote, and syn are public dependencies.
 [dependencies]
-proc-macro2 = "1"
+proc-macro2 = "1.0.60"
 quote = "1"
 syn = { version = "2", features = ["full"] }
 

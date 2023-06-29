@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Fix build error from dependency when built with `-Z minimal-versions`.
+
 ## [0.13.0] - 2023-03-26
 
 - Update `syn` dependency to 2. This increase the minimum supported Rust version from Rust 1.31 to Rust 1.56.
