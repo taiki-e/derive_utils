@@ -367,11 +367,13 @@ impl ReceiverKind {
             }
         }
 
-        match sig.inputs.first() {
+        match sig.receiver() {
             None => panic!("method `{}` has no receiver", sig.ident),
-            Some(FnArg::Receiver(_)) => ReceiverKind::Normal,
-            Some(FnArg::Typed(pat)) => {
-                match &*pat.ty {
+            Some(receiver) => {
+                if receiver.colon_token.is_none() {
+                    return ReceiverKind::Normal;
+                }
+                match &*receiver.ty {
                     Type::Path(TypePath { qself: None, path }) => {
                         // (mut) self: Self
                         if path.is_ident("Self") {
@@ -386,11 +388,10 @@ impl ReceiverKind {
                     }
                     _ => {}
                 }
-
                 panic!(
                     "method `{}` has unsupported receiver type: {}",
                     sig.ident,
-                    pat.ty.to_token_stream()
+                    receiver.ty.to_token_stream()
                 );
             }
         }

@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Fix diagnostic regression introduced in 0.13.0.
+
 ## [0.13.1] - 2023-06-29
 
 - Fix build error from dependency when built with `-Z minimal-versions`.
