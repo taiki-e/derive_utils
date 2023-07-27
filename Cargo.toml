@@ -6,7 +6,7 @@ rust-version = "1.56"
 license = "Apache-2.0 OR MIT"
 repository = "https://github.com/taiki-e/derive_utils"
 keywords = ["enum", "macros", "derive"]
-categories = ["rust-patterns", "development-tools::procedural-macro-helpers"]
+categories = ["development-tools::procedural-macro-helpers", "rust-patterns"]
 exclude = ["/.*", "/tools"]
 description = """
 A procedural macro helper for easily writing derive macros for enums.
