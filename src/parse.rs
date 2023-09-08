@@ -268,17 +268,17 @@ impl<'a> EnumImpl<'a> {
                 let trait_ = self.trait_path();
                 let mut arms = Vec::with_capacity(self.data.variant_idents().len());
                 if trait_.is_none() {
-                    self.data.variant_idents().for_each(|v| {
+                    for v in self.data.variant_idents() {
                         arms.push(quote! {
                             #ident::#v(x) => x.#method(#(#args),*),
                         });
-                    });
+                    }
                 } else {
-                    self.data.variant_idents().for_each(|v| {
+                    for v in self.data.variant_idents() {
                         arms.push(quote! {
                             #ident::#v(x) => #trait_::#method(x #(,#args)*),
                         });
-                    });
+                    }
                 };
                 parse_quote!(match self { #(#arms)* })
             }
