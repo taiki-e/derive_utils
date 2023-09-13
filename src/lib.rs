@@ -134,7 +134,7 @@ where
     // clippy::std_instead_of_alloc,
     clippy::std_instead_of_core,
 )]
-#![allow(clippy::must_use_candidate)]
+#![allow(clippy::doc_markdown, clippy::must_use_candidate)]
 
 #[macro_use]
 mod error;
