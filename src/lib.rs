@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 /*!
 A procedural macro helper for easily writing [derives macros][proc-macro-derive] for enums.
 

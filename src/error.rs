@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 macro_rules! format_err {
     ($span:expr, $msg:expr $(,)?) => {
         syn::Error::new_spanned(&$span as &dyn quote::ToTokens, &$msg as &dyn core::fmt::Display)

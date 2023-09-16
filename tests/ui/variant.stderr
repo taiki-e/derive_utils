@@ -1,35 +1,35 @@
 error: may not be used on enums without variants
- --> tests/ui/variant.rs:4:1
+ --> tests/ui/variant.rs:6:1
   |
-4 | enum EnumWZV {} //~ ERROR may not be used on enums without variants
+6 | enum EnumWZV {} //~ ERROR may not be used on enums without variants
   | ^^^^^^^^^^^^^^^
 
 error: may not be used on enums with discriminants
- --> tests/ui/variant.rs:8:9
-  |
-8 |     A = 2, //~ ERROR may not be used on enums with discriminants
-  |         ^
+  --> tests/ui/variant.rs:10:9
+   |
+10 |     A = 2, //~ ERROR may not be used on enums with discriminants
+   |         ^
 
 error: may not be used on enums with variants with zero fields
-  --> tests/ui/variant.rs:14:5
+  --> tests/ui/variant.rs:16:5
    |
-14 |     A, //~ ERROR may not be used on enums with variants with zero fields
+16 |     A, //~ ERROR may not be used on enums with variants with zero fields
    |     ^
 
 error: may not be used on enums with variants with zero fields
-  --> tests/ui/variant.rs:20:5
+  --> tests/ui/variant.rs:22:5
    |
-20 |     A(), //~ ERROR may not be used on enums with variants with zero fields
+22 |     A(), //~ ERROR may not be used on enums with variants with zero fields
    |     ^^^
 
 error: may not be used on enums with variants with multiple fields
-  --> tests/ui/variant.rs:27:5
+  --> tests/ui/variant.rs:29:5
    |
-27 |     B(A, B), //~ ERROR may not be used on enums with variants with multiple fields
+29 |     B(A, B), //~ ERROR may not be used on enums with variants with multiple fields
    |     ^^^^^^^
 
 error: may not be used on enums with variants with named fields
-  --> tests/ui/variant.rs:32:5
+  --> tests/ui/variant.rs:34:5
    |
-32 |     A { x: A }, //~ ERROR may not be used on enums with variants with named fields
+34 |     A { x: A }, //~ ERROR may not be used on enums with variants with named fields
    |     ^^^^^^^^^^
