@@ -126,13 +126,19 @@ where
     )
 ))]
 #![forbid(unsafe_code)]
-#![warn(rust_2018_idioms, single_use_lifetimes, unreachable_pub)]
 #![warn(
+    rust_2018_idioms,
+    single_use_lifetimes,
+    unreachable_pub,
     clippy::pedantic,
-    // lints for public library
+    // Lints that may help when writing public library.
+    // missing_debug_implementations,
+    // missing_docs,
     clippy::alloc_instead_of_core,
     clippy::exhaustive_enums,
     clippy::exhaustive_structs,
+    clippy::impl_trait_in_params,
+    // clippy::missing_inline_in_public_items,
     // clippy::std_instead_of_alloc,
     clippy::std_instead_of_core,
 )]
@@ -206,8 +212,8 @@ pub mod __private {
     use crate::EnumData;
 
     #[doc(hidden)]
-    pub fn parse_input(
-        input: impl Into<TokenStream>,
+    pub fn parse_input<T: Into<TokenStream>>(
+        input: T,
         f: fn(EnumData) -> TokenStream,
     ) -> TokenStream {
         parse2::<EnumData>(input.into()).map_or_else(Error::into_compile_error, f)
