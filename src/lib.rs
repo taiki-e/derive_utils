@@ -127,10 +127,6 @@ where
 ))]
 #![forbid(unsafe_code)]
 #![warn(
-    rust_2018_idioms,
-    single_use_lifetimes,
-    unreachable_pub,
-    clippy::pedantic,
     // Lints that may help when writing public library.
     // missing_debug_implementations,
     // missing_docs,
@@ -142,7 +138,7 @@ where
     // clippy::std_instead_of_alloc,
     clippy::std_instead_of_core,
 )]
-#![allow(clippy::doc_markdown, clippy::must_use_candidate)]
+#![allow(clippy::must_use_candidate)]
 
 #[macro_use]
 mod error;

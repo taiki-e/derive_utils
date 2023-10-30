@@ -9,3 +9,6 @@ proc-macro = true
 
 [dependencies]
 derive_utils = { path = "../.." }
+
+[lints]
+workspace = true

@@ -6,3 +6,6 @@ publish = false
 
 [dependencies]
 example_derive = { path = "../example_derive" }
+
+[lints]
+workspace = true
