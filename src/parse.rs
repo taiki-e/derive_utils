@@ -105,7 +105,7 @@ impl<'a> EnumImpl<'a> {
             generics: data.generics.clone(),
             trait_: None,
             self_ty: Box::new(parse_quote!(#ident #ty_generics)),
-            items: Vec::new(),
+            items: vec![],
         }
     }
 
@@ -328,7 +328,7 @@ impl<'a> EnumImpl<'a> {
 
     pub fn build_impl(self) -> ItemImpl {
         ItemImpl {
-            attrs: Vec::new(),
+            attrs: vec![],
             defaultness: if self.defaultness { Some(<Token![default]>::default()) } else { None },
             unsafety: if self.unsafety { Some(<Token![unsafe]>::default()) } else { None },
             impl_token: token::Impl::default(),
