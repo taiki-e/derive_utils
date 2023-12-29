@@ -19,7 +19,7 @@ use crate::ast::EnumData;
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```
 /// # extern crate proc_macro;
 /// #
 /// use derive_utils::derive_trait;
