@@ -161,7 +161,9 @@ macro_rules! quick_derive {
             $crate::derive_trait(
                 &data,
                 $crate::__private::parse_quote!($trait_path),
-                $crate::__private::Some($crate::__private::format_ident!(stringify!($super))),
+                $crate::__private::Some(
+                    $crate::__private::format_ident!($crate::__private::stringify!($super))
+                ),
                 $crate::__private::parse_quote!($($trait_def)*),
             )
         })
@@ -172,7 +174,9 @@ macro_rules! quick_derive {
             $crate::derive_trait(
                 &data,
                 $crate::__private::parse_quote!($trait_path),
-                vec![$( $crate::__private::format_ident!(stringify!($super)) ),+],
+                $crate::__private::vec![
+                    $( $crate::__private::format_ident!($crate::__private::stringify!($super)) ),+
+                ],
                 $crate::__private::parse_quote!($($trait_def)*),
             )
         })
@@ -195,7 +199,12 @@ macro_rules! quick_derive {
 #[doc(hidden)]
 pub mod __private {
     #[doc(hidden)]
-    pub use core::option::Option::{None, Some};
+    pub use core::{
+        option::Option::{None, Some},
+        stringify,
+    };
+    #[doc(hidden)]
+    pub use std::vec;
 
     use proc_macro2::TokenStream;
     #[doc(hidden)]
