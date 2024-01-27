@@ -44,7 +44,7 @@ workspace = true
 resolver = "2"
 members = ["examples/example", "examples/example_derive"]
 
-# This table is shared by projects under https://github.com/taiki-e.
+# This table is shared by projects under github.com/taiki-e.
 # It is not intended for manual editing.
 [workspace.lints.rust]
 improper_ctypes = "warn"
