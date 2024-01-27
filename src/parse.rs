@@ -6,10 +6,9 @@ use std::borrow::Cow;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
-    parse_quote, punctuated::Punctuated, token, Block, FnArg, GenericParam, Generics, Ident,
-    ImplItem, ImplItemFn, ItemImpl, ItemTrait, Path, PathArguments, Signature, Stmt, Token,
-    TraitItem, TraitItemFn, TraitItemType, Type, TypeParamBound, TypePath, Visibility,
-    WherePredicate,
+    parse_quote, token, Block, FnArg, GenericParam, Generics, Ident, ImplItem, ImplItemFn,
+    ItemImpl, ItemTrait, Path, PathArguments, Signature, Stmt, Token, TraitItem, TraitItemFn,
+    TraitItemType, Type, TypeParamBound, TypePath, Visibility, WherePredicate,
 };
 
 use crate::ast::EnumData;
@@ -190,15 +189,12 @@ impl<'a> EnumImpl<'a> {
         }));
 
         if !trait_def.generics.params.is_empty() {
-            generics.params.extend(mem::replace(&mut trait_def.generics.params, Punctuated::new()));
+            generics.params.extend(mem::take(&mut trait_def.generics.params));
         }
 
         if let Some(old) = trait_def.generics.where_clause.as_mut() {
             if !old.predicates.is_empty() {
-                generics
-                    .make_where_clause()
-                    .predicates
-                    .extend(mem::replace(&mut old.predicates, Punctuated::new()));
+                generics.make_where_clause().predicates.extend(mem::take(&mut old.predicates));
             }
         }
 
