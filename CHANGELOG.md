@@ -14,6 +14,10 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
   This is considered as a breaking change because it will no longer allow a comma after the trait definition.
 
+- Change the second argument of `derive_trait` and `EnumImpl::from_trait` from `syn::Path` to `&syn::Path`.
+
+- Fix "overflow evaluating the requirement" error on recursive structures without type parameters. ([#47](https://github.com/taiki-e/derive_utils/issues/47))
+
 ## [0.13.2] - 2023-07-27
 
 - Fix diagnostic regression introduced in 0.13.0.

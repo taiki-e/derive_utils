@@ -160,7 +160,7 @@ macro_rules! quick_derive {
         $crate::__private::parse_input($input, |data| {
             $crate::derive_trait(
                 &data,
-                $crate::__private::parse_quote!($trait_path),
+                &$crate::__private::parse_quote!($trait_path),
                 $crate::__private::Some(
                     $crate::__private::format_ident!($crate::__private::stringify!($super))
                 ),
@@ -173,7 +173,7 @@ macro_rules! quick_derive {
         $crate::__private::parse_input($input, |data| {
             $crate::derive_trait(
                 &data,
-                $crate::__private::parse_quote!($trait_path),
+                &$crate::__private::parse_quote!($trait_path),
                 $crate::__private::vec![
                     $( $crate::__private::format_ident!($crate::__private::stringify!($super)) ),+
                 ],
@@ -186,7 +186,7 @@ macro_rules! quick_derive {
         $crate::__private::parse_input($input, |data| {
             $crate::derive_trait(
                 &data,
-                $crate::__private::parse_quote!($trait_path),
+                &$crate::__private::parse_quote!($trait_path),
                 $crate::__private::None,
                 $crate::__private::parse_quote!($($trait_def)*),
             )
