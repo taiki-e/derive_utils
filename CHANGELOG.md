@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+## [0.14.0] - 2024-01-27
+
 - Allow `quote` variables in the trait definition of `quick_derive!` macro.
 
   This is considered as a breaking change because it will no longer allow a comma after the trait definition.
@@ -229,7 +231,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/derive_utils/compare/v0.13.2...HEAD
+[Unreleased]: https://github.com/taiki-e/derive_utils/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/taiki-e/derive_utils/compare/v0.13.2...v0.14.0
 [0.13.2]: https://github.com/taiki-e/derive_utils/compare/v0.13.1...v0.13.2
 [0.13.1]: https://github.com/taiki-e/derive_utils/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/taiki-e/derive_utils/compare/v0.12.0...v0.13.0

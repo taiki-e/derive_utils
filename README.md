@@ -14,7 +14,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-derive_utils = "0.13"
+derive_utils = "0.14"
 ```
 
 *Compiler support: requires rustc 1.56+*
