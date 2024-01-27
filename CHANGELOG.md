@@ -10,6 +10,10 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Allow `quote` variables in the trait definition of `quick_derive!` macro.
+
+  This is considered as a breaking change because it will no longer allow a comma after the trait definition.
+
 ## [0.13.2] - 2023-07-27
 
 - Fix diagnostic regression introduced in 0.13.0.

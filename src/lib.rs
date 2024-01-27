@@ -156,35 +156,35 @@ pub use crate::{
 /// See crate level documentation for details.
 #[macro_export]
 macro_rules! quick_derive {
-    ($input:expr, $trait_path:expr, <$super:ident>, $trait_def:item $(,)?) => {
+    ($input:expr, $trait_path:expr, <$super:ident>, $($trait_def:tt)*) => {
         $crate::__private::parse_input($input, |data| {
             $crate::derive_trait(
                 &data,
                 $crate::__private::parse_quote!($trait_path),
                 $crate::__private::Some($crate::__private::format_ident!(stringify!($super))),
-                $crate::__private::parse_quote!($trait_def),
+                $crate::__private::parse_quote!($($trait_def)*),
             )
         })
         .into()
     };
-    ($input:expr, $trait_path:expr, <$($super:ident),+ $(,)?>, $trait_def:item $(,)?) => {
+    ($input:expr, $trait_path:expr, <$($super:ident),+ $(,)?>, $($trait_def:tt)*) => {
         $crate::__private::parse_input($input, |data| {
             $crate::derive_trait(
                 &data,
                 $crate::__private::parse_quote!($trait_path),
                 vec![$( $crate::__private::format_ident!(stringify!($super)) ),+],
-                $crate::__private::parse_quote!($trait_def),
+                $crate::__private::parse_quote!($($trait_def)*),
             )
         })
         .into()
     };
-    ($input:expr, $trait_path:expr, $trait_def:item $(,)?) => {
+    ($input:expr, $trait_path:expr, $($trait_def:tt)*) => {
         $crate::__private::parse_input($input, |data| {
             $crate::derive_trait(
                 &data,
                 $crate::__private::parse_quote!($trait_path),
                 $crate::__private::None,
-                $crate::__private::parse_quote!($trait_def),
+                $crate::__private::parse_quote!($($trait_def)*),
             )
         })
         .into()
@@ -207,9 +207,9 @@ pub mod __private {
     use crate::EnumData;
 
     #[doc(hidden)]
-    pub fn parse_input<T: Into<TokenStream>>(
+    pub fn parse_input<T: Into<TokenStream>, F: Fn(EnumData) -> TokenStream>(
         input: T,
-        f: fn(EnumData) -> TokenStream,
+        f: F,
     ) -> TokenStream {
         parse2::<EnumData>(input.into()).map_or_else(Error::into_compile_error, f)
     }
