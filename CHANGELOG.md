@@ -10,6 +10,10 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Fix "overflow evaluating the requirement" error when the first variant and the other variant have the same type.
+
+- Fix a bug introduced in 0.14.0.
+
 ## [0.14.0] - 2024-01-27
 
 - Allow `quote` variables in the trait definition of `quick_derive!` macro.

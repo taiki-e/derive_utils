@@ -161,9 +161,10 @@ impl<'a> EnumImpl<'a> {
             }
         }
 
+        // https://github.com/taiki-e/derive_utils/issues/47
         let type_params = generics.type_params().map(|p| p.ident.to_string()).collect::<Vec<_>>();
-        if !type_params.is_empty() {
-            // https://github.com/taiki-e/derive_utils/issues/47
+        let has_method = trait_def.items.iter().any(|i| matches!(i, TraitItem::Fn(..)));
+        if !has_method || !type_params.is_empty() {
             struct HasTypeParam<'a>(&'a [String]);
 
             impl HasTypeParam<'_> {
@@ -206,37 +207,44 @@ impl<'a> EnumImpl<'a> {
 
             let visitor = HasTypeParam(&type_params);
             let where_clause = &mut generics.make_where_clause().predicates;
-            if visitor.visit_type(fst) {
+            if !has_method || visitor.visit_type(fst) {
                 where_clause.push(parse_quote!(#fst: #trait_));
             }
-            where_clause.extend(data.field_types().skip(1).filter_map(
-                |variant| -> Option<WherePredicate> {
-                    if !visitor.visit_type(variant) {
-                        return None;
-                    }
-                    if types.is_empty() {
-                        return Some(parse_quote!(#variant: #trait_));
-                    }
-                    let types = types.iter().map(|(supertraits, ident)| {
-                        match trait_def.supertraits.iter().next() {
-                            Some(TypeParamBound::Trait(trait_)) if *supertraits => {
-                                quote!(#ident = <#fst as #trait_>::#ident)
-                            }
-                            _ => quote!(#ident = <#fst as #trait_>::#ident),
+            if data.field_types().len() > 1 {
+                let fst_tokens = fst.to_token_stream().to_string();
+                where_clause.extend(data.field_types().skip(1).filter_map(
+                    |variant| -> Option<WherePredicate> {
+                        if has_method && !visitor.visit_type(variant) {
+                            return None;
                         }
-                    });
-                    if trait_def.generics.params.is_empty() {
-                        Some(parse_quote!(#variant: #trait_path<#(#types),*>))
-                    } else {
-                        let generics = trait_def.generics.params.iter().map(|param| match param {
-                            GenericParam::Lifetime(def) => def.lifetime.to_token_stream(),
-                            GenericParam::Type(param) => param.ident.to_token_stream(),
-                            GenericParam::Const(param) => param.ident.to_token_stream(),
+                        if variant.to_token_stream().to_string() == fst_tokens {
+                            return None;
+                        }
+                        if types.is_empty() {
+                            return Some(parse_quote!(#variant: #trait_));
+                        }
+                        let types = types.iter().map(|(supertraits, ident)| {
+                            match trait_def.supertraits.iter().next() {
+                                Some(TypeParamBound::Trait(trait_)) if *supertraits => {
+                                    quote!(#ident = <#fst as #trait_>::#ident)
+                                }
+                                _ => quote!(#ident = <#fst as #trait_>::#ident),
+                            }
                         });
-                        Some(parse_quote!(#variant: #trait_path<#(#generics),*, #(#types),*>))
-                    }
-                },
-            ));
+                        if trait_def.generics.params.is_empty() {
+                            Some(parse_quote!(#variant: #trait_path<#(#types),*>))
+                        } else {
+                            let generics =
+                                trait_def.generics.params.iter().map(|param| match param {
+                                    GenericParam::Lifetime(def) => def.lifetime.to_token_stream(),
+                                    GenericParam::Type(param) => param.ident.to_token_stream(),
+                                    GenericParam::Const(param) => param.ident.to_token_stream(),
+                                });
+                            Some(parse_quote!(#variant: #trait_path<#(#generics),*, #(#types),*>))
+                        }
+                    },
+                ));
+            }
         }
 
         if !trait_def.generics.params.is_empty() {
@@ -309,26 +317,25 @@ impl<'a> EnumImpl<'a> {
         let method = &item.sig.ident;
         let ident = &self.data.ident;
         let method = match self_ty {
-            ReceiverKind::Normal => {
-                let mut arms = Vec::with_capacity(self.data.variant_idents().len());
-                match &self.trait_ {
-                    None => {
-                        for v in self.data.variant_idents() {
-                            arms.push(quote! {
-                                #ident::#v(x) => x.#method(#(#args),*),
-                            });
+            ReceiverKind::Normal => match &self.trait_ {
+                None => {
+                    let arms = self.data.variant_idents().map(|v| {
+                        quote! {
+                            #ident::#v(x) => x.#method(#(#args),*),
                         }
-                    }
-                    Some(trait_) => {
-                        for (v, ty) in self.data.variant_idents().zip(self.data.field_types()) {
-                            arms.push(quote! {
-                                #ident::#v(x) => <#ty as #trait_>::#method(x #(,#args)*),
-                            });
-                        }
-                    }
+                    });
+                    parse_quote!(match self { #(#arms)* })
                 }
-                parse_quote!(match self { #(#arms)* })
-            }
+                Some(trait_) => {
+                    let arms =
+                        self.data.variant_idents().zip(self.data.field_types()).map(|(v, ty)| {
+                            quote! {
+                                #ident::#v(x) => <#ty as #trait_>::#method(x #(,#args)*),
+                            }
+                        });
+                    parse_quote!(match self { #(#arms)* })
+                }
+            },
         };
 
         self.push_item(ImplItem::Fn(ImplItemFn {
