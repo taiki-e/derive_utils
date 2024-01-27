@@ -16,6 +16,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [0.14.0] - 2024-01-27
 
+**Note:** This release has been yanked due to a bug fixed in 0.14.1.
+
 - Allow `quote` variables in the trait definition of `quick_derive!` macro.
 
   This is considered as a breaking change because it will no longer allow a comma after the trait definition.
