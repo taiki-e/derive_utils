@@ -128,15 +128,22 @@ for id in $(jq <<<"${metadata}" '.workspace_members[]'); do
     changed_paths+=("${manifest_path}")
     # Update version in Cargo.toml.
     sed -i -e "s/^version = \"${prev_version}\" #publish:version/version = \"${version}\" #publish:version/g" "${manifest_path}"
+    # Update '=' requirement in Cargo.toml.
+    for manifest in $(git ls-files '*Cargo.toml'); do
+        if grep -Eq "^${name} = \\{ version = \"=${prev_version}\"" "${manifest}"; then
+            sed -i -E -e "s/^${name} = \\{ version = \"=${prev_version}\"/${name} = { version = \"=${version}\"/g" "${manifest}"
+        fi
+    done
     # Update version in readme and lib.rs.
     for path in "${docs[@]}"; do
+        # TODO: handle pre-release
         if [[ "${version}" == "0.0."* ]]; then
             # 0.0.x -> 0.0.x2
-            if grep -q "^${name} = \"${prev_version}\"" "${path}"; then
-                sed -i -e "s/^${name} = \"${prev_version}\"/${name} = \"${version}\"/g" "${path}"
+            if grep -Eq "^${name} = \"${prev_version}\"" "${path}"; then
+                sed -i -E -e "s/^${name} = \"${prev_version}\"/${name} = \"${version}\"/g" "${path}"
             fi
-            if grep -q "^${name} = { version = \"${prev_version}\"" "${path}"; then
-                sed -i -e "s/^${name} = { version = \"${prev_version}\"/${name} = { version = \"${version}\"/g" "${path}"
+            if grep -Eq "^${name} = \\{ version = \"${prev_version}\"" "${path}"; then
+                sed -i -E -e "s/^${name} = \\{ version = \"${prev_version}\"/${name} = { version = \"${version}\"/g" "${path}"
             fi
         elif [[ "${version}" == "0."* ]]; then
             prev_major_minor="${prev_version%.*}"
