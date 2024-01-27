@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-use example_derive::{ExactSizeIterator, Iterator};
+use example_derive::{ExactSizeIterator, Iterator, MyTrait1, MyTrait2};
 
-#[derive(Iterator, ExactSizeIterator)]
+#[derive(Iterator, ExactSizeIterator, MyTrait1, MyTrait2)]
 enum Enum<A, B> {
     A(A),
     B(B),
