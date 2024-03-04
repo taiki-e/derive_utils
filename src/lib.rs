@@ -128,6 +128,7 @@ where
 #![forbid(unsafe_code)]
 #![warn(
     // Lints that may help when writing public library.
+    // missing_debug_implementations,
     // missing_docs,
     clippy::alloc_instead_of_core,
     clippy::exhaustive_enums,
@@ -137,7 +138,7 @@ where
     // clippy::std_instead_of_alloc,
     clippy::std_instead_of_core,
 )]
-#![allow(missing_debug_implementations, clippy::must_use_candidate)]
+#![allow(clippy::must_use_candidate)]
 
 #[macro_use]
 mod error;
