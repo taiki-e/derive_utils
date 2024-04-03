@@ -10,7 +10,6 @@ like deriving trait to enum so long as all variants are implemented that trait.
 
 ```rust
 # extern crate proc_macro;
-#
 use derive_utils::quick_derive;
 use proc_macro::TokenStream;
 

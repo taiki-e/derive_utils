@@ -20,7 +20,6 @@ use crate::ast::EnumData;
 ///
 /// ```
 /// # extern crate proc_macro;
-/// #
 /// use derive_utils::derive_trait;
 /// use proc_macro::TokenStream;
 /// use quote::format_ident;
