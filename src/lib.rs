@@ -110,7 +110,6 @@ where
 - [io-enum]: \#\[derive(Read, Write, Seek, BufRead)\] for enums.
 - [iter-enum]: \#\[derive(Iterator, DoubleEndedIterator, ExactSizeIterator, FusedIterator, Extend)\] for enums.
 
-[`quick_derive!`]: https://docs.rs/derive_utils/0.12/derive_utils/macro.quick_derive.html
 [auto_enums]: https://github.com/taiki-e/auto_enums
 [io-enum]: https://github.com/taiki-e/io-enum
 [iter-enum]: https://github.com/taiki-e/iter-enum
