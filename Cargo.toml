@@ -1,6 +1,6 @@
 [package]
 name = "derive_utils"
-version = "0.14.1" #publish:version
+version = "0.14.2" #publish:version
 edition = "2021"
 rust-version = "1.56"
 license = "Apache-2.0 OR MIT"

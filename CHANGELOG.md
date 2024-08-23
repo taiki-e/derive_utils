@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+## [0.14.2] - 2024-08-23
+
 - Disable `derive` feature of `syn` dependency.
 
 ## [0.14.1] - 2024-01-27
@@ -241,7 +243,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/derive_utils/compare/v0.14.1...HEAD
+[Unreleased]: https://github.com/taiki-e/derive_utils/compare/v0.14.2...HEAD
+[0.14.2]: https://github.com/taiki-e/derive_utils/compare/v0.14.1...v0.14.2
 [0.14.1]: https://github.com/taiki-e/derive_utils/compare/v0.14.0...v0.14.1
 [0.14.0]: https://github.com/taiki-e/derive_utils/compare/v0.13.2...v0.14.0
 [0.13.2]: https://github.com/taiki-e/derive_utils/compare/v0.13.1...v0.13.2
