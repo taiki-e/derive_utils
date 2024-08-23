@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Disable `derive` feature of `syn` dependency.
+
 ## [0.14.1] - 2024-01-27
 
 - Fix "overflow evaluating the requirement" error when the first variant and the other variant have the same type.
