@@ -2,7 +2,7 @@
 name = "derive_utils"
 version = "0.14.2" #publish:version
 edition = "2021"
-rust-version = "1.56"
+rust-version = "1.56" # For syn
 license = "Apache-2.0 OR MIT"
 repository = "https://github.com/taiki-e/derive_utils"
 keywords = ["enum", "macros", "derive"]
