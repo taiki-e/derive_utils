@@ -14,7 +14,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-derive_utils = "0.14"
+derive_utils = "0.15"
 ```
 
 ## Examples

@@ -12,6 +12,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+## [0.15.0] - 2025-01-16
+
 - Use `#[automatically_derived]` on generated impls to improve coverage support.
 
 ## [0.14.2] - 2024-08-23
@@ -247,7 +249,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/derive_utils/compare/v0.14.2...HEAD
+[Unreleased]: https://github.com/taiki-e/derive_utils/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/taiki-e/derive_utils/compare/v0.14.2...v0.15.0
 [0.14.2]: https://github.com/taiki-e/derive_utils/compare/v0.14.1...v0.14.2
 [0.14.1]: https://github.com/taiki-e/derive_utils/compare/v0.14.0...v0.14.1
 [0.14.0]: https://github.com/taiki-e/derive_utils/compare/v0.13.2...v0.14.0
