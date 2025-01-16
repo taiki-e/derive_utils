@@ -12,6 +12,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Use `#[automatically_derived]` on generated impls to improve coverage support.
+
 ## [0.14.2] - 2024-08-23
 
 - Disable `derive` feature of `syn` dependency.

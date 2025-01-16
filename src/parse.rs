@@ -379,7 +379,7 @@ impl<'a> EnumImpl<'a> {
 
     pub fn build_impl(self) -> ItemImpl {
         ItemImpl {
-            attrs: vec![],
+            attrs: vec![parse_quote!(#[automatically_derived])],
             defaultness: if self.defaultness { Some(<Token![default]>::default()) } else { None },
             unsafety: if self.unsafety { Some(<Token![unsafe]>::default()) } else { None },
             impl_token: token::Impl::default(),

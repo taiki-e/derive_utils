@@ -70,6 +70,7 @@ enum Enum<A, B> {
     B(B),
 }
 
+#[automatically_derived]
 impl<A, B> std::iter::Iterator for Enum<A, B>
 where
     A: std::iter::Iterator,
@@ -90,6 +91,7 @@ where
     }
 }
 
+#[automatically_derived]
 impl<A, B> std::iter::ExactSizeIterator for Enum<A, B>
 where
     A: std::iter::ExactSizeIterator,
