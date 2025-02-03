@@ -8,12 +8,12 @@ A procedural macro helper for easily writing [derives macros][proc-macro-derive]
 [`quick_derive!`] macro make easy to write [`proc_macro_derive`][proc-macro-derive]
 like deriving trait to enum so long as all variants are implemented that trait.
 
-```rust
+```
 # extern crate proc_macro;
 use derive_utils::quick_derive;
 use proc_macro::TokenStream;
 
-# #[cfg(any())]
+# #[cfg(any(/* always false */))]
 #[proc_macro_derive(Iterator)]
 # pub fn _derive_iterator(_: TokenStream) -> TokenStream { unimplemented!() }
 pub fn derive_iterator(input: TokenStream) -> TokenStream {
@@ -30,7 +30,7 @@ pub fn derive_iterator(input: TokenStream) -> TokenStream {
     }
 }
 
-# #[cfg(any())]
+# #[cfg(any(/* always false */))]
 #[proc_macro_derive(ExactSizeIterator)]
 # pub fn _derive_exact_size_iterator(_: TokenStream) -> TokenStream { unimplemented!() }
 pub fn derive_exact_size_iterator(input: TokenStream) -> TokenStream {
@@ -52,8 +52,8 @@ pub fn derive_exact_size_iterator(input: TokenStream) -> TokenStream {
 
 When deriving for enum like the following:
 
-```rust
-# #[cfg(any())]
+```
+# #[cfg(any(/* always false */))]
 #[derive(Iterator, ExactSizeIterator, Future)]
 # struct _Enum<A>(A);
 enum Enum<A, B> {
@@ -64,7 +64,7 @@ enum Enum<A, B> {
 
 Code like this will be generated:
 
-```rust
+```
 enum Enum<A, B> {
     A(A),
     B(B),
@@ -154,7 +154,7 @@ pub use crate::{
 /// A macro for making easy to write `proc_macro_derive` like deriving trait to
 /// enum so long as all variants are implemented that trait.
 ///
-/// See crate level documentation for details.
+/// See the [crate-level documentation](crate) for details.
 #[macro_export]
 macro_rules! quick_derive {
     ($input:expr, $trait_path:expr, <$super:ident>, $($trait_def:tt)*) => {

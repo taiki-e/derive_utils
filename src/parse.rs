@@ -25,7 +25,7 @@ use crate::ast::EnumData;
 /// use quote::format_ident;
 /// use syn::{parse_macro_input, parse_quote};
 ///
-/// # #[cfg(any())]
+/// # #[cfg(any(/* always false */))]
 /// #[proc_macro_derive(Iterator)]
 /// # pub fn _derive_iterator(_: TokenStream) -> TokenStream { unimplemented!() }
 /// pub fn derive_iterator(input: TokenStream) -> TokenStream {
@@ -47,7 +47,7 @@ use crate::ast::EnumData;
 ///     .into()
 /// }
 ///
-/// # #[cfg(any())]
+/// # #[cfg(any(/* always false */))]
 /// #[proc_macro_derive(ExactSizeIterator)]
 /// # pub fn _derive_exact_size_iterator(_: TokenStream) -> TokenStream { unimplemented!() }
 /// pub fn derive_exact_size_iterator(input: TokenStream) -> TokenStream {
