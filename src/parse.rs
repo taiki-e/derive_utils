@@ -4,11 +4,11 @@ use core::mem;
 use std::borrow::Cow;
 
 use proc_macro2::{TokenStream, TokenTree};
-use quote::{quote, ToTokens as _};
+use quote::{ToTokens as _, quote};
 use syn::{
-    parse_quote, token, Block, FnArg, GenericParam, Generics, Ident, ImplItem, ImplItemFn,
-    ItemImpl, ItemTrait, Path, Signature, Stmt, Token, TraitItem, TraitItemFn, TraitItemType, Type,
-    TypeParamBound, TypePath, Visibility, WherePredicate,
+    Block, FnArg, GenericParam, Generics, Ident, ImplItem, ImplItemFn, ItemImpl, ItemTrait, Path,
+    Signature, Stmt, Token, TraitItem, TraitItemFn, TraitItemType, Type, TypeParamBound, TypePath,
+    Visibility, WherePredicate, parse_quote, token,
 };
 
 use crate::ast::EnumData;
@@ -400,11 +400,7 @@ enum ReceiverKind {
 impl ReceiverKind {
     fn new(sig: &Signature) -> Self {
         fn get_ty_path(ty: &Type) -> Option<&Path> {
-            if let Type::Path(TypePath { qself: None, path }) = ty {
-                Some(path)
-            } else {
-                None
-            }
+            if let Type::Path(TypePath { qself: None, path }) = ty { Some(path) } else { None }
         }
 
         match sig.receiver() {

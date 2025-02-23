@@ -5,8 +5,8 @@ use core::ops;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
-    parse::{Parse, ParseStream},
     Fields, Ident, ItemEnum, Result, Type,
+    parse::{Parse, ParseStream},
 };
 
 /// A structure to make trait implementation to enums more efficient.

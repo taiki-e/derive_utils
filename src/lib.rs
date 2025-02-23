@@ -148,7 +148,7 @@ mod parse;
 
 pub use crate::{
     ast::EnumData,
-    parse::{derive_trait, EnumImpl},
+    parse::{EnumImpl, derive_trait},
 };
 
 /// A macro for making easy to write `proc_macro_derive` like deriving trait to
@@ -212,7 +212,7 @@ pub mod __private {
     pub use quote::{format_ident, quote};
     use syn::Error;
     #[doc(hidden)]
-    pub use syn::{parse2, parse_quote, ItemTrait, Path};
+    pub use syn::{ItemTrait, Path, parse_quote, parse2};
 
     use crate::EnumData;
 

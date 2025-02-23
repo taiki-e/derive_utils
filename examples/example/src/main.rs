@@ -17,11 +17,7 @@ enum Enum2<A> {
 }
 
 fn return_iter(x: i16) -> impl ExactSizeIterator<Item = i16> {
-    if x < 0 {
-        Enum::A(x..=0)
-    } else {
-        Enum::B(0..x)
-    }
+    if x < 0 { Enum::A(x..=0) } else { Enum::B(0..x) }
 }
 
 trait MyTrait1 {
