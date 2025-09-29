@@ -146,7 +146,7 @@ mod error;
 mod ast;
 mod parse;
 
-pub use crate::{
+pub use self::{
     ast::EnumData,
     parse::{EnumImpl, derive_trait},
 };
