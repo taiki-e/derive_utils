@@ -135,10 +135,12 @@ where
     clippy::exhaustive_structs,
     clippy::impl_trait_in_params,
     // clippy::missing_inline_in_public_items,
-    // clippy::std_instead_of_alloc,
+    clippy::std_instead_of_alloc,
     clippy::std_instead_of_core,
 )]
 #![allow(clippy::must_use_candidate)]
+
+extern crate alloc;
 
 #[macro_use]
 mod error;
@@ -200,12 +202,12 @@ macro_rules! quick_derive {
 #[doc(hidden)]
 pub mod __private {
     #[doc(hidden)]
+    pub use alloc::vec;
+    #[doc(hidden)]
     pub use core::{
         option::Option::{None, Some},
         stringify,
     };
-    #[doc(hidden)]
-    pub use std::vec;
 
     use proc_macro2::TokenStream;
     #[doc(hidden)]
