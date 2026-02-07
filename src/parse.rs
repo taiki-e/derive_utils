@@ -27,7 +27,8 @@ use crate::ast::EnumData;
 ///
 /// # #[cfg(any(/* always false */))]
 /// #[proc_macro_derive(Iterator)]
-/// # pub fn _derive_iterator(_: TokenStream) -> TokenStream { unimplemented!() }
+/// # fn _derive_iterator(_: TokenStream) -> TokenStream { unimplemented!() }
+/// # #[allow(unreachable_pub)]
 /// pub fn derive_iterator(input: TokenStream) -> TokenStream {
 ///     derive_trait(
 ///         &parse_macro_input!(input),
@@ -49,7 +50,8 @@ use crate::ast::EnumData;
 ///
 /// # #[cfg(any(/* always false */))]
 /// #[proc_macro_derive(ExactSizeIterator)]
-/// # pub fn _derive_exact_size_iterator(_: TokenStream) -> TokenStream { unimplemented!() }
+/// # fn _derive_exact_size_iterator(_: TokenStream) -> TokenStream { unimplemented!() }
+/// # #[allow(unreachable_pub)]
 /// pub fn derive_exact_size_iterator(input: TokenStream) -> TokenStream {
 ///     derive_trait(
 ///         &parse_macro_input!(input),

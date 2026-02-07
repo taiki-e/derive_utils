@@ -15,7 +15,8 @@ use proc_macro::TokenStream;
 
 # #[cfg(any(/* always false */))]
 #[proc_macro_derive(Iterator)]
-# pub fn _derive_iterator(_: TokenStream) -> TokenStream { unimplemented!() }
+# fn _derive_iterator(_: TokenStream) -> TokenStream { unimplemented!() }
+# #[allow(unreachable_pub)]
 pub fn derive_iterator(input: TokenStream) -> TokenStream {
     quick_derive! {
         input,
@@ -32,7 +33,8 @@ pub fn derive_iterator(input: TokenStream) -> TokenStream {
 
 # #[cfg(any(/* always false */))]
 #[proc_macro_derive(ExactSizeIterator)]
-# pub fn _derive_exact_size_iterator(_: TokenStream) -> TokenStream { unimplemented!() }
+# fn _derive_exact_size_iterator(_: TokenStream) -> TokenStream { unimplemented!() }
+# #[allow(unreachable_pub)]
 pub fn derive_exact_size_iterator(input: TokenStream) -> TokenStream {
     quick_derive! {
         input,
@@ -120,10 +122,12 @@ where
 
 #![doc(test(
     no_crate_inject,
-    attr(
-        deny(warnings, rust_2018_idioms, single_use_lifetimes),
-        allow(dead_code, unused_variables)
-    )
+    attr(allow(
+        dead_code,
+        unused_variables,
+        clippy::undocumented_unsafe_blocks,
+        clippy::unused_trait_names,
+    ))
 ))]
 #![forbid(unsafe_code)]
 #![warn(
