@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+use alloc::vec::Vec;
 use core::ops;
 
 use proc_macro2::TokenStream;

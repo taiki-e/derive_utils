@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-use alloc::borrow::Cow;
+use alloc::{
+    borrow::Cow,
+    boxed::Box,
+    string::{String, ToString as _},
+    vec,
+    vec::Vec,
+};
 use core::mem;
 
 use proc_macro2::{TokenStream, TokenTree};

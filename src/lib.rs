@@ -120,6 +120,7 @@ where
 [proc-macro-derive]: https://doc.rust-lang.org/reference/procedural-macros.html#derive-macros
 */
 
+#![no_std]
 #![doc(test(
     no_crate_inject,
     attr(allow(
@@ -145,6 +146,7 @@ where
 #![allow(clippy::must_use_candidate)]
 
 extern crate alloc;
+extern crate std;
 
 #[macro_use]
 mod error;
