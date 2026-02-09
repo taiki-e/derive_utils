@@ -426,7 +426,7 @@ impl ReceiverKind {
                     }
                     Type::Reference(ty) => {
                         // (mut) self: &(mut) Self
-                        if get_ty_path(&ty.elem).map_or(false, |path| path.is_ident("Self")) {
+                        if get_ty_path(&ty.elem).is_some_and(|path| path.is_ident("Self")) {
                             return ReceiverKind::Normal;
                         }
                     }
