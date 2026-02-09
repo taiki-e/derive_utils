@@ -3,7 +3,7 @@ name = "derive_utils"
 version = "0.15.0" #publish:version
 edition = "2021"
 # NB: Sync with msrv badge in README.md
-rust-version = "1.68" # For syn
+rust-version = "1.71" # For syn
 license = "Apache-2.0 OR MIT"
 repository = "https://github.com/taiki-e/derive_utils"
 keywords = ["enum", "macros", "derive"]
