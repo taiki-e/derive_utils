@@ -420,7 +420,7 @@ impl ReceiverKind {
             Some(receiver) => {
                 match &receiver.kind {
                     syn::ReceiverKind::Value | syn::ReceiverKind::Reference(..) => {
-                        return ReceiverKind::Normal;
+                        ReceiverKind::Normal
                     }
                     syn::ReceiverKind::Typed(_colon, ty) => {
                         match &**ty {
