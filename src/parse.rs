@@ -12,8 +12,8 @@ use core::mem;
 use proc_macro2::{TokenStream, TokenTree};
 use quote::{ToTokens as _, quote};
 use syn::{
-    Block, FnArg, GenericParam, Generics, Ident, ImplItem, ImplItemFn, ImplModifiers, ItemImpl,
-    ItemTrait, Path, Signature, Stmt, Token, TraitItem, TraitItemFn, TraitItemType, Type,
+    Block, FnArg, FnModifiers, GenericParam, Generics, Ident, ImplItem, ImplItemFn, ImplModifiers,
+    ItemImpl, ItemTrait, Path, Signature, Stmt, Token, TraitItem, TraitItemFn, TraitItemType, Type,
     TypeParamBound, TypePath, Visibility, WherePredicate, parse_quote, token,
 };
 
@@ -348,7 +348,7 @@ impl<'a> EnumImpl<'a> {
         self.push_item(ImplItem::Fn(ImplItemFn {
             attrs: item.attrs,
             vis: Visibility::Inherited,
-            modifiers: Default::default(),
+            modifiers: FnModifiers::default(),
             sig: item.sig,
             block: Block {
                 brace_token: token::Brace::default(),
