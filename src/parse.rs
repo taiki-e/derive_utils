@@ -12,9 +12,9 @@ use core::mem;
 use proc_macro2::{TokenStream, TokenTree};
 use quote::{ToTokens as _, quote};
 use syn::{
-    Block, FnArg, GenericParam, Generics, Ident, ImplItem, ImplItemFn, ItemImpl, ItemTrait, Path,
-    Signature, Stmt, Token, TraitItem, TraitItemFn, TraitItemType, Type, TypeParamBound, TypePath,
-    Visibility, WherePredicate, parse_quote, token,
+    Block, FnArg, FnModifiers, GenericParam, Generics, Ident, ImplItem, ImplItemFn, ImplModifiers,
+    ItemImpl, ItemTrait, Path, Signature, Stmt, Token, TraitItem, TraitItemFn, TraitItemType, Type,
+    TypeParamBound, TypePath, Visibility, WherePredicate, parse_quote, token,
 };
 
 use crate::ast::EnumData;
@@ -348,7 +348,7 @@ impl<'a> EnumImpl<'a> {
         self.push_item(ImplItem::Fn(ImplItemFn {
             attrs: item.attrs,
             vis: Visibility::Inherited,
-            defaultness: None,
+            modifiers: FnModifiers::default(),
             sig: item.sig,
             block: Block {
                 brace_token: token::Brace::default(),
@@ -386,13 +386,17 @@ impl<'a> EnumImpl<'a> {
     }
 
     pub fn build_impl(self) -> ItemImpl {
+        let mut modifiers = ImplModifiers::default();
+        if self.defaultness {
+            modifiers.defaultness = Some(<Token![default]>::default());
+        }
         ItemImpl {
             attrs: vec![parse_quote!(#[automatically_derived])],
-            defaultness: if self.defaultness { Some(<Token![default]>::default()) } else { None },
+            modifiers,
             unsafety: if self.unsafety { Some(<Token![unsafe]>::default()) } else { None },
             impl_token: token::Impl::default(),
             generics: self.generics,
-            trait_: self.trait_.map(|trait_| (None, trait_, <Token![for]>::default())),
+            trait_: self.trait_.map(|trait_| (trait_, <Token![for]>::default())),
             self_ty: self.self_ty,
             brace_token: token::Brace::default(),
             items: self.items,
@@ -408,35 +412,44 @@ enum ReceiverKind {
 impl ReceiverKind {
     fn new(sig: &Signature) -> Self {
         fn get_ty_path(ty: &Type) -> Option<&Path> {
-            if let Type::Path(TypePath { qself: None, path }) = ty { Some(path) } else { None }
+            if let Type::Path(TypePath { qself: None, path, .. }) = ty { Some(path) } else { None }
         }
 
         match sig.receiver() {
             None => panic!("method `{}` has no receiver", sig.ident),
             Some(receiver) => {
-                if receiver.colon_token.is_none() {
-                    return ReceiverKind::Normal;
-                }
-                match &*receiver.ty {
-                    Type::Path(TypePath { qself: None, path }) => {
-                        // (mut) self: Self
-                        if path.is_ident("Self") {
-                            return ReceiverKind::Normal;
-                        }
+                match &receiver.kind {
+                    syn::ReceiverKind::Value | syn::ReceiverKind::Reference(..) => {
+                        ReceiverKind::Normal
                     }
-                    Type::Reference(ty) => {
-                        // (mut) self: &(mut) Self
-                        if get_ty_path(&ty.elem).is_some_and(|path| path.is_ident("Self")) {
-                            return ReceiverKind::Normal;
+                    syn::ReceiverKind::Typed(_colon, ty) => {
+                        match &**ty {
+                            Type::Path(TypePath { qself: None, path, .. }) => {
+                                // (mut) self: Self
+                                if path.is_ident("Self") {
+                                    return ReceiverKind::Normal;
+                                }
+                            }
+                            Type::Reference(ty) => {
+                                // (mut) self: &(mut) Self
+                                if get_ty_path(&ty.elem).is_some_and(|path| path.is_ident("Self")) {
+                                    return ReceiverKind::Normal;
+                                }
+                            }
+                            _ => {}
                         }
+                        panic!(
+                            "method `{}` has unsupported receiver type: {}",
+                            sig.ident,
+                            ty.to_token_stream()
+                        );
                     }
-                    _ => {}
+                    _ => panic!(
+                        "method `{}` has unsupported receiver kind: {}",
+                        sig.ident,
+                        receiver.to_token_stream(),
+                    ),
                 }
-                panic!(
-                    "method `{}` has unsupported receiver type: {}",
-                    sig.ident,
-                    receiver.ty.to_token_stream()
-                );
             }
         }
     }

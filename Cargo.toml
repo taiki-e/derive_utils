@@ -29,9 +29,9 @@ doc-scrape-examples = false
 
 # Note: proc-macro2, quote, and syn are public dependencies.
 [dependencies]
-proc-macro2 = "1.0.60"
-quote = "1.0.25"
-syn = { version = "2", default-features = false, features = ["parsing", "printing", "clone-impls", "proc-macro", "full"] }
+proc-macro2 = "1.0.91"
+quote = "1.0.35"
+syn = { version = "3", default-features = false, features = ["parsing", "printing", "clone-impls", "proc-macro", "full"] }
 
 [dev-dependencies]
 example_derive = { path = "examples/example_derive" }
